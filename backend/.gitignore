@@ -1,0 +1,25 @@
+# Logs and sessions
+logs/
+sessions/
+*.log
+
+# Uploads (user-generated)
+uploads/
+
+# Environment config (local)
+config/db.php
+config/.env
+
+# Composer
+vendor/
+composer.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
