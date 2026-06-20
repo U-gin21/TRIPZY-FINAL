@@ -1,0 +1,177 @@
+/* Authentication Page Redesign */
+.auth-page-container {
+  position: relative;
+  background-color: #ecfdf5;
+  min-height: 100vh;
+  display: flex;
+  justify-content: space-between;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.auth-bg-blob-1 {
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.12) 0%, rgba(5, 150, 105, 0.03) 60%, transparent 100%);
+  filter: blur(80px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.auth-bg-blob-2 {
+  position: absolute;
+  bottom: -150px;
+  left: -150px;
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.1) 0%, rgba(13, 148, 136, 0.02) 60%, transparent 100%);
+  filter: blur(100px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.auth-form-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.04);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+/* Unified Custom Input Groups */
+.custom-input-group {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0 16px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 48px;
+}
+
+.custom-input-group:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.08);
+}
+
+.custom-input-group.error {
+  border-color: #ef4444;
+}
+
+.custom-input-group.error:focus-within {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
+}
+
+.custom-input-group .input-icon {
+  color: #94a3b8;
+  margin-right: 12px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.custom-input-group .form-control,
+.custom-input-group .form-select {
+  border: none !important;
+  padding: 0 !important;
+  height: 100% !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 15px;
+  color: #1e293b;
+}
+
+.custom-input-group .form-control::placeholder {
+  color: #94a3b8;
+}
+
+/* Role Selection Card */
+.role-card {
+  cursor: pointer;
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px 16px;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 100%;
+}
+
+.role-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.03);
+}
+
+.role-card.selected-tourist {
+  border-color: #3b82f6 !important;
+  border-width: 2px !important;
+  background: rgba(59, 130, 246, 0.01);
+}
+
+.role-card.selected-provider {
+  border-color: #10b981 !important;
+  border-width: 2px !important;
+  background: rgba(16, 185, 129, 0.01);
+}
+
+.role-card.selected-admin {
+  border-color: #64748b !important;
+  border-width: 2px !important;
+  background: rgba(100, 116, 139, 0.01);
+}
+
+.role-card-badge-tourist {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #3b82f6;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.role-card-badge-provider {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #10b981;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.role-card-badge-admin {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #64748b;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.role-icon-container {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+}
+
+.role-icon-tourist {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.role-icon-provider {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.role-icon-admin {
+  background: #f1f5f9;
+  color: #64748b;
+}
