@@ -1,0 +1,33 @@
+/* Weather display widget */
+.weather-widget {
+  background: var(--grad-blue-green);
+  color: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 10px 25px rgba(6, 95, 70, 0.15);
+}
+
+.forecast-item {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+
+.forecast-item:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Glassmorphic Search Bar styles */
+.glassmorphic-search-bar input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.glassmorphic-search-bar input:focus {
+  color: #ffffff !important;
+  background-color: transparent !important;
+}
