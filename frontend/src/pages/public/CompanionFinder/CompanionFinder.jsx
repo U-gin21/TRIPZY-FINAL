@@ -511,6 +511,7 @@ export default function CompanionFinder({ currentUser, onNavigate }) {
                       className="form-control rounded-3" 
                       value={startDate} 
                       onChange={(e) => setStartDate(e.target.value)} 
+                      min={new Date().toISOString().split('T')[0]}
                       required 
                     />
                   </div>
@@ -521,6 +522,7 @@ export default function CompanionFinder({ currentUser, onNavigate }) {
                       className="form-control rounded-3" 
                       value={endDate} 
                       onChange={(e) => setEndDate(e.target.value)} 
+                      min={startDate || new Date().toISOString().split('T')[0]}
                       required 
                     />
                   </div>
