@@ -49,6 +49,7 @@ export default function CreateCompanionPostModal({
                     className="form-control rounded-3"
                     value={postStartDate}
                     onChange={(e) => setPostStartDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
                     required
                   />
                 </div>
@@ -59,6 +60,7 @@ export default function CreateCompanionPostModal({
                     className="form-control rounded-3"
                     value={postEndDate}
                     onChange={(e) => setPostEndDate(e.target.value)}
+                    min={postStartDate || new Date().toISOString().split('T')[0]}
                     required
                   />
                 </div>
