@@ -7,6 +7,8 @@ export default function ListingsTab({ listings, fetchListings, showConfirm }) {
   const [editName, setEditName] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editDesc, setEditDesc] = useState('');
+  const [editNoOfRooms, setEditNoOfRooms] = useState('');
+  const [editServiceType, setEditServiceType] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleEditInit = (srv) => {
@@ -14,18 +16,29 @@ export default function ListingsTab({ listings, fetchListings, showConfirm }) {
     setEditName(srv.name_of_institute);
     setEditPrice(srv.price);
     setEditDesc(srv.description);
+    setEditNoOfRooms(srv.no_of_rooms || '');
+    setEditServiceType(srv.service_type);
   };
 
   const handleUpdateServiceSubmit = async (e) => {
     e.preventDefault();
     if (isUpdating) return;
+
+    if (editServiceType === 'hotel') {
+      if (!editNoOfRooms || isNaN(editNoOfRooms) || parseInt(editNoOfRooms) <= 0) {
+        alert('Please enter a valid number of rooms.');
+        return;
+      }
+    }
+
     setIsUpdating(true);
     try {
       await apiRequest('services', 'update', 'POST', {
         id: editingId,
         name_of_institute: editName,
         price: editPrice,
-        description: editDesc
+        description: editDesc,
+        no_of_rooms: editServiceType === 'hotel' ? editNoOfRooms : null
       });
       alert("Listing updated successfully.");
       setEditingId(null);
@@ -71,14 +84,20 @@ export default function ListingsTab({ listings, fetchListings, showConfirm }) {
           <h5 className="fw-bold text-primary mb-3">Edit Offer Post</h5>
           <form onSubmit={handleUpdateServiceSubmit}>
             <div className="row g-3">
-              <div className="col-md-6">
+              <div className={editServiceType === 'hotel' ? "col-md-4" : "col-md-6"}>
                 <label className="form-label small fw-bold">Name of Institute</label>
                 <input type="text" className="form-control rounded-3" value={editName} onChange={(e) => setEditName(e.target.value)} required />
               </div>
-              <div className="col-md-6">
+              <div className={editServiceType === 'hotel' ? "col-md-4" : "col-md-6"}>
                 <label className="form-label small fw-bold">Price / Day (LKR)</label>
                 <input type="number" className="form-control rounded-3" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} required />
               </div>
+              {editServiceType === 'hotel' && (
+                <div className="col-md-4">
+                  <label className="form-label small fw-bold">Total Rooms Available</label>
+                  <input type="number" className="form-control rounded-3" min="1" value={editNoOfRooms} onChange={(e) => setEditNoOfRooms(e.target.value)} required />
+                </div>
+              )}
               <div className="col-12">
                 <label className="form-label small fw-bold">Description</label>
                 <textarea className="form-control rounded-3" rows="3" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} required></textarea>
@@ -116,6 +135,9 @@ export default function ListingsTab({ listings, fetchListings, showConfirm }) {
                   <div className="mb-3 small">
                     <span className="fw-bold d-block">Contact Info:</span>
                     <span className="text-muted">{srv.contact_no} | {srv.email}</span>
+                    {srv.service_type === 'hotel' && (
+                      <span className="d-block text-muted">Rooms: {srv.no_of_rooms}</span>
+                    )}
                     <span className="d-block fw-bold text-success mt-2">LKR {Number(srv.price).toLocaleString()} / day</span>
                   </div>
                 </div>

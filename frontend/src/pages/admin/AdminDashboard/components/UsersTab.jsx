@@ -92,6 +92,7 @@ export default function UsersTab({ users, handleToggleUserStatus, onViewUserSumm
               <tr>
                 <th>User Details</th>
                 <th>Role</th>
+                <th>Platform Rating</th>
                 <th>Contact info</th>
                 <th>NIC/Passport</th>
                 <th>Status</th>
@@ -139,6 +140,21 @@ export default function UsersTab({ users, handleToggleUserStatus, onViewUserSumm
                       <span className="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fw-bold text-uppercase" style={{ fontSize: '10px' }}>
                         Provider
                       </span>
+                    )}
+                  </td>
+                  <td>
+                    {user.user_type === 'provider' ? (
+                      <div className="d-flex align-items-center gap-1">
+                        <span className="text-warning fw-bold small" style={{ fontSize: '13px' }}>★</span>
+                        <strong className="small text-dark" style={{ fontSize: '12px' }}>
+                          {user.rating > 0 ? `${user.rating}` : '0.0'}
+                        </strong>
+                        <span className="text-muted small" style={{ fontSize: '10px' }}>
+                          ({user.review_count || 0} reviews)
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-muted small">-</span>
                     )}
                   </td>
                   <td>

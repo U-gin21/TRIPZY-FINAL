@@ -42,5 +42,17 @@ class SessionMiddleware {
                 $_SESSION['last_activity'] = time();
             }
         }
+
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+
+        setcookie('XSRF-TOKEN', $_SESSION['csrf_token'], [
+            'expires' => 0,
+            'path' => '/',
+            'secure' => $cookieSecure,
+            'httponly' => false,
+            'samesite' => $cookieSameSite
+        ]);
     }
 }

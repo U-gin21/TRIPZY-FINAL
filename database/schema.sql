@@ -101,6 +101,7 @@ CREATE TABLE services (
     email VARCHAR(150) NOT NULL COMMENT 'Direct email address for service inquires',
     price DECIMAL(10,2) NOT NULL COMMENT 'Base rental/booking rate',
     description TEXT NOT NULL COMMENT 'Detailed description of services offered',
+    no_of_rooms INT DEFAULT NULL COMMENT 'Number of total rooms available for hotels',
     status ENUM('enabled', 'disabled') DEFAULT 'enabled' COMMENT 'Service visibility state',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of service registry',
     CONSTRAINT fk_services_provider FOREIGN KEY (provider_id) REFERENCES provider_profiles(user_id) ON DELETE CASCADE
@@ -120,6 +121,7 @@ CREATE TABLE bookings (
     price DECIMAL(10,2) NOT NULL COMMENT 'Agreed payment amount at time of booking',
     status ENUM('pending', 'completed', 'rejected') DEFAULT 'pending' COMMENT 'Booking transaction lifecycle state',
     booking_details TEXT DEFAULT NULL COMMENT 'Additional requests or specifications',
+    no_of_rooms INT DEFAULT 1 COMMENT 'Number of rooms booked',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of transaction creation',
     CONSTRAINT fk_bookings_tourist FOREIGN KEY (tourist_id) REFERENCES tourist_profiles(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_bookings_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE

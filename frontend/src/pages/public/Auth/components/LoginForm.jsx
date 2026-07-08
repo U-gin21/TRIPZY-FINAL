@@ -27,7 +27,7 @@ export default function LoginForm({
           <input
             type="email"
             name="email"
-            autocomplete="username"
+            autoComplete="username"
             className="form-control"
             value={loginEmail}
             onChange={(e) => setLoginEmail(e.target.value)}
@@ -46,7 +46,7 @@ export default function LoginForm({
           <input
             type="password"
             name="password"
-            autocomplete="current-password"
+            autoComplete="current-password"
             className="form-control"
             value={loginPassword}
             onChange={(e) => setLoginPassword(e.target.value)}

@@ -56,6 +56,9 @@ export default function BookServicesTab({ services, serviceTypeFilter, setServic
                     <div className="mb-3 small">
                       <span className="fw-bold d-block">Contact Support:</span>
                       <span className="text-muted">{srv.contact_no} | {srv.email}</span>
+                      {srv.service_type === 'hotel' && (
+                        <span className="d-block text-muted">Rooms Available: {srv.no_of_rooms}</span>
+                      )}
                     </div>
                   </div>
                   <div className="d-flex justify-content-between align-items-center pt-3 border-top">

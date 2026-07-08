@@ -56,7 +56,28 @@ class AuthController {
 
     // Endpoint destroys the user session and logs the client out
     public function logout($input, $args) {
-        session_destroy();
+        $_SESSION = array();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+        
+        session_start();
+        session_regenerate_id(true);
+        
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        
+        $isHTTPS = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+        $cookieSameSite = $isHTTPS ? 'None' : 'Lax';
+        $cookieSecure = $isHTTPS;
+        
+        setcookie('XSRF-TOKEN', $_SESSION['csrf_token'], [
+            'expires' => 0,
+            'path' => '/',
+            'secure' => $cookieSecure,
+            'httponly' => false,
+            'samesite' => $cookieSameSite
+        ]);
+
         return ["success" => true, "message" => "Logged out successfully."];
     }
 
@@ -146,5 +167,29 @@ class AuthController {
         unset($_SESSION['reset_token'], $_SESSION['reset_email'], $_SESSION['reset_expires'], $_SESSION['reset_verified']);
         
         return ["success" => true, "message" => "Password reset successfully. You can now log in."];
+    }
+
+    // Endpoint handles contact inquiry submissions and sends notification emails to support
+    public function contact($input, $args) {
+        if (empty($input['name']) || empty($input['email']) || empty($input['subject']) || empty($input['message'])) {
+            throw new ValidationException("All fields (name, email, subject, message) are required.");
+        }
+
+        if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new ValidationException("Invalid email address format.");
+        }
+
+        $admin_email = 'dteugene2003@gmail.com';
+        $subject = "Tripzy Contact Inquiry: " . $input['subject'];
+        $body = "<h2>New Contact Inquiry</h2>";
+        $body .= "<p><strong>Name:</strong> " . htmlspecialchars($input['name']) . "</p>";
+        $body .= "<p><strong>Email:</strong> " . htmlspecialchars($input['email']) . "</p>";
+        $body .= "<p><strong>Subject:</strong> " . htmlspecialchars($input['subject']) . "</p>";
+        $body .= "<p><strong>Message:</strong><br>" . nl2br(htmlspecialchars($input['message'])) . "</p>";
+
+        require_once __DIR__ . '/../helper/Mailer.php';
+        Mailer::send($admin_email, $subject, $body);
+
+        return ["success" => true, "message" => "Thank you! Your message was submitted successfully."];
     }
 }

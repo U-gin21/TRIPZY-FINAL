@@ -260,9 +260,16 @@ export default function AdminDashboard({
                         style={{ width: '110px', height: '110px', objectFit: 'cover', border: '4px solid var(--primary-color)' }}
                       />
                       <h4 className="fw-bold mb-1">{selectedSummaryUser.full_name}</h4>
-                      <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 fw-bold text-uppercase" style={{ fontSize: '11px' }}>
-                        {selectedSummaryUser.user_type}
-                      </span>
+                      <div className="d-flex align-items-center justify-content-center gap-2 mb-2 flex-wrap">
+                        <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 fw-bold text-uppercase" style={{ fontSize: '11px' }}>
+                          {selectedSummaryUser.user_type === 'provider' ? 'Service Provider' : selectedSummaryUser.user_type}
+                        </span>
+                        {selectedSummaryUser.user_type === 'provider' && (
+                          <span className="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-bold text-uppercase" style={{ fontSize: '11px' }}>
+                            Platform Rating: ★ {selectedSummaryUser.rating > 0 ? `${selectedSummaryUser.rating} (${selectedSummaryUser.review_count})` : 'No reviews'}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="bg-light p-3 rounded-3">

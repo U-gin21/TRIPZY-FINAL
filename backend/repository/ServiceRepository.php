@@ -10,8 +10,8 @@ class ServiceRepository {
 
     // Inserts a new service record with an enabled status
     public function create($data) {
-        $sql = "INSERT INTO services (provider_id, service_type, name_of_institute, photo, contact_no, email, price, description, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'enabled')";
+        $sql = "INSERT INTO services (provider_id, service_type, name_of_institute, photo, contact_no, email, price, description, status, no_of_rooms)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'enabled', ?)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $data['provider_id'],
@@ -21,13 +21,14 @@ class ServiceRepository {
             $data['contact_no'],
             $data['email'],
             $data['price'],
-            $data['description']
+            $data['description'],
+            $data['service_type'] === 'hotel' ? (isset($data['no_of_rooms']) ? intval($data['no_of_rooms']) : null) : null
         ]);
     }
 
     // Updates service details by database ID
     public function update($id, $data) {
-        $sql = "UPDATE services SET name_of_institute = ?, photo = ?, contact_no = ?, email = ?, price = ?, description = ? WHERE id = ?";
+        $sql = "UPDATE services SET name_of_institute = ?, photo = ?, contact_no = ?, email = ?, price = ?, description = ?, no_of_rooms = ? WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $data['name_of_institute'],
@@ -36,6 +37,7 @@ class ServiceRepository {
             $data['email'],
             $data['price'],
             $data['description'],
+            $data['service_type'] === 'hotel' ? (isset($data['no_of_rooms']) ? intval($data['no_of_rooms']) : null) : null,
             $id
         ]);
     }
@@ -160,6 +162,20 @@ class ServiceRepository {
             GROUP BY service_type
         ");
         $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    // Retrieves all customer reviews submitted for any service owned by this provider
+    public function getReviewsForProvider($providerId) {
+        $stmt = $this->db->prepare("
+            SELECT r.*, u.full_name as tourist_name, u.profile_photo as tourist_photo, s.name_of_institute, s.service_type
+            FROM reviews r
+            JOIN users u ON r.tourist_id = u.id
+            JOIN services s ON r.service_id = s.id
+            WHERE s.provider_id = ?
+            ORDER BY r.created_at DESC
+        ");
+        $stmt->execute([$providerId]);
         return $stmt->fetchAll();
     }
 }

@@ -62,7 +62,13 @@ class Mailer {
                 $mail->SMTPAuth = true;
                 $mail->Username = SMTP_USER;
                 $mail->Password = SMTP_PASS;
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                
+                if (intval(SMTP_PORT) === 465) {
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                } else {
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                }
+                
                 $mail->Port = SMTP_PORT;
                 $mail->SMTPOptions = [
                     'ssl' => [

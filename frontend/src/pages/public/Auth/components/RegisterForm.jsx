@@ -106,7 +106,7 @@ export default function RegisterForm({
             <input
               type="text"
               name="full_name"
-              autocomplete="name"
+              autoComplete="name"
               className="form-control"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -126,7 +126,7 @@ export default function RegisterForm({
             <input
               type="email"
               name="email"
-              autocomplete="username"
+              autoComplete="username"
               className="form-control"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -146,7 +146,7 @@ export default function RegisterForm({
             <input
               type="password"
               name="password"
-              autocomplete="new-password"
+              autoComplete="new-password"
               className="form-control"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -166,7 +166,7 @@ export default function RegisterForm({
             <input
               type="password"
               name="confirm_password"
-              autocomplete="new-password"
+              autoComplete="new-password"
               className="form-control"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -186,7 +186,7 @@ export default function RegisterForm({
             <input
               type="date"
               name="dob"
-              autocomplete="bday"
+              autoComplete="bday"
               className="form-control"
               value={dob}
               onChange={(e) => setDob(e.target.value)}
@@ -202,7 +202,7 @@ export default function RegisterForm({
             <span className="input-icon">
               <i className="bi bi-gender-ambiguous"></i>
             </span>
-            <select className="form-select" name="gender" autocomplete="sex" value={gender} onChange={(e) => setGender(e.target.value)} required>
+            <select className="form-select" name="gender" autoComplete="sex" value={gender} onChange={(e) => setGender(e.target.value)} required>
               <option value="">Select Gender</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -220,7 +220,7 @@ export default function RegisterForm({
             <input
               type="text"
               name="nic_passport"
-              autocomplete="off"
+              autoComplete="off"
               className="form-control"
               value={nicPassport}
               onChange={(e) => setNicPassport(e.target.value)}
@@ -240,7 +240,7 @@ export default function RegisterForm({
             <input
               type="tel"
               name="contact_no"
-              autocomplete="tel"
+              autoComplete="tel"
               className="form-control"
               value={contactNo}
               onChange={(e) => setContactNo(e.target.value)}

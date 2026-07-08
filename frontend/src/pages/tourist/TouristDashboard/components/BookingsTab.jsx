@@ -66,7 +66,12 @@ export default function BookingsTab({ bookings, setReviewServiceId }) {
                 {filteredBookings.map(book => (
                   <tr key={book.id}>
                     <td><strong className="text-primary">{book.ref_no}</strong></td>
-                    <td>{book.name_of_institute}</td>
+                    <td>
+                      {book.name_of_institute}
+                      {book.service_type === 'hotel' && (
+                        <span className="text-muted d-block small">{book.no_of_rooms} Room(s)</span>
+                      )}
+                    </td>
                     <td className="text-capitalize">{book.service_type}</td>
                     <td>{book.start_date} to {book.end_date}</td>
                     <td>LKR {Number(book.price).toLocaleString()}</td>

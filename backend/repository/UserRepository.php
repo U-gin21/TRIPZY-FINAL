@@ -102,7 +102,23 @@ class UserRepository {
 
     // Retrieves all active users excluding special system admins
     public function getAllUsers() {
-        $stmt = $this->db->prepare("SELECT id, email, user_type, full_name, name_with_initial, nic_passport, contact_no, gender, date_of_birth, profile_photo, status FROM users WHERE user_type != 'admin' OR email != 'dteugee2003@gmail.com'");
+        $stmt = $this->db->prepare("
+            SELECT u.*, 
+                   (
+                       SELECT ROUND(IFNULL(AVG(rev.rating), 0), 1)
+                       FROM reviews rev
+                       JOIN services s ON rev.service_id = s.id
+                       WHERE s.provider_id = u.id
+                   ) as rating,
+                   (
+                       SELECT COUNT(rev.id)
+                       FROM reviews rev
+                       JOIN services s ON rev.service_id = s.id
+                       WHERE s.provider_id = u.id
+                   ) as review_count
+            FROM users u
+            WHERE u.user_type != 'admin' OR u.email != 'dteugee2003@gmail.com'
+        ");
         $stmt->execute();
         return $stmt->fetchAll();
     }

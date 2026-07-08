@@ -21,6 +21,13 @@ export const getProfilePhoto = (profilePhoto) => {
   return defaultProfilePhoto;
 };
 
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
 export async function apiRequest(controller, action, method = 'GET', data = null) {
   let url = `${API_BASE}/index.php?controller=${controller}&action=${action}`;
   
@@ -33,17 +40,23 @@ export async function apiRequest(controller, action, method = 'GET', data = null
     method,
     credentials: 'include', // Crucial for PHP Session support
     mode: 'cors',
-    cache: 'no-cache'
+    cache: 'no-cache',
+    headers: {}
   };
+
+  if (method !== 'GET') {
+    const csrfToken = getCookie('XSRF-TOKEN');
+    if (csrfToken) {
+      options.headers['X-XSRF-TOKEN'] = csrfToken;
+    }
+  }
 
   if (method !== 'GET' && data) {
     if (data instanceof FormData) {
       // Let browser set the boundaries automatically for form-data uploads
       options.body = data;
     } else {
-      options.headers = {
-        'Content-Type': 'application/json',
-      };
+      options.headers['Content-Type'] = 'application/json';
       options.body = JSON.stringify(data);
     }
   }

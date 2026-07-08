@@ -96,7 +96,12 @@ export default function BookingsTab({ bookings, setSelectedCust, fetchBookings }
                         {book.tourist_name}
                       </button>
                     </td>
-                    <td>{book.start_date} to {book.end_date}</td>
+                    <td>
+                      {book.start_date} to {book.end_date}
+                      {book.service_type === 'hotel' && (
+                        <span className="text-muted d-block small">{book.no_of_rooms} Room(s)</span>
+                      )}
+                    </td>
                     <td>LKR {Number(book.price).toLocaleString()}</td>
                     <td><span className="small text-muted">{book.booking_details || 'None'}</span></td>
                     <td>

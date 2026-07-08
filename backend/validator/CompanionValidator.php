@@ -23,6 +23,10 @@ class CompanionValidator {
             throw new ValidationException("Start date cannot be after end date.");
         }
 
+        if (strtotime($input['end_date']) < strtotime(date('Y-m-d'))) {
+            throw new ValidationException("End date cannot be in the past.");
+        }
+
         if (!is_numeric($input['budget_range']) || floatval($input['budget_range']) <= 0) {
             throw new ValidationException("Budget must be a positive number.");
         }

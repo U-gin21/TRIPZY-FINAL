@@ -22,11 +22,37 @@ class AdminService {
         
         $book_stmt = $db->query("SELECT status, COUNT(*) as count, SUM(price) as total_earnings FROM bookings GROUP BY status");
         $booking_stats = $book_stmt->fetchAll();
+
+        // Monthly Sales (last 6 months)
+        $sales_stmt = $db->query("
+            SELECT DATE_FORMAT(created_at, '%b %Y') as month, 
+                   SUM(price) as sales 
+            FROM bookings 
+            WHERE status = 'completed'
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY DATE_FORMAT(created_at, '%Y-%m') ASC
+            LIMIT 6
+        ");
+        $monthly_sales = $sales_stmt ? $sales_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
+        // Monthly Users (last 6 months)
+        $users_month_stmt = $db->query("
+            SELECT DATE_FORMAT(created_at, '%b %Y') as month, 
+                   COUNT(*) as count 
+            FROM users 
+            WHERE user_type != 'admin'
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY DATE_FORMAT(created_at, '%Y-%m') ASC
+            LIMIT 6
+        ");
+        $monthly_users = $users_month_stmt ? $users_month_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         
         return [
             "users" => $user_stats,
             "services" => $service_stats,
-            "bookings" => $booking_stats
+            "bookings" => $booking_stats,
+            "monthly_sales" => $monthly_sales,
+            "monthly_users" => $monthly_users
         ];
     }
 

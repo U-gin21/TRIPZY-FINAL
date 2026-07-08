@@ -24,7 +24,7 @@ export default function ResetPasswordForm({
           <input
             type="password"
             name="password"
-            autocomplete="new-password"
+            autoComplete="new-password"
             className="form-control"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}

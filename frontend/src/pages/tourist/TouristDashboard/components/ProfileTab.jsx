@@ -207,6 +207,62 @@ export default function ProfileTab({ currentUser, onProfileUpdate, bookings, myP
                   </div>
                   <div className="form-text small">Leave empty to keep your current contact number.</div>
                 </div>
+
+                <div className="col-md-12 mt-4 pt-3 border-top">
+                  <h6 className="fw-bold text-uppercase text-secondary small mb-3">Verified Personal Registry (Read-only)</h6>
+                </div>
+                
+                <div className="col-md-6">
+                  <label className="form-label small fw-bold text-muted">Email Address</label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-end-0"><i className="bi bi-envelope text-secondary"></i></span>
+                    <input
+                      type="text"
+                      className="form-control bg-light rounded-end-3"
+                      value={currentUser.email || ''}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label small fw-bold text-muted">NIC / Passport Number</label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-end-0"><i className="bi bi-card-text text-secondary"></i></span>
+                    <input
+                      type="text"
+                      className="form-control bg-light rounded-end-3"
+                      value={currentUser.nic_passport || ''}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label small fw-bold text-muted">Gender</label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-end-0"><i className="bi bi-gender-ambiguous text-secondary"></i></span>
+                    <input
+                      type="text"
+                      className="form-control bg-light rounded-end-3 text-capitalize"
+                      value={currentUser.gender || ''}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label small fw-bold text-muted">Date of Birth</label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-end-0"><i className="bi bi-calendar-event text-secondary"></i></span>
+                    <input
+                      type="text"
+                      className="form-control bg-light rounded-end-3"
+                      value={currentUser.date_of_birth || ''}
+                      readOnly
+                    />
+                  </div>
+                </div>
                 
                 <div className="col-12 mt-4 pt-3 border-top">
                   <button type="submit" className="btn btn-gradient w-100 py-3 rounded-pill shadow-sm fw-bold d-flex align-items-center justify-content-center gap-2 animate-float-hover" disabled={profileLoading}>

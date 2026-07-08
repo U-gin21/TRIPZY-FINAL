@@ -26,6 +26,34 @@ require_once __DIR__ . '/config/db.php';
 SessionMiddleware::handle();
 CORSMiddleware::handle();
 
+// Check CSRF token for state-changing requests
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array(strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])) {
+    $controller = $_GET['controller'] ?? '';
+    $action = $_GET['action'] ?? '';
+
+    // Exempt actions that do not require an active authenticated session
+    $exemptedActions = [
+        'auth' => ['login', 'register', 'forgot_password', 'verify_reset_token', 'reset_password']
+    ];
+
+    $isExempt = isset($exemptedActions[$controller]) && in_array($action, $exemptedActions[$controller]);
+
+    if (!$isExempt) {
+        $headerToken = $_SERVER['HTTP_X_XSRF_TOKEN'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        $sessionToken = $_SESSION['csrf_token'] ?? '';
+
+        if (empty($sessionToken) || empty($headerToken) || !hash_equals($sessionToken, urldecode($headerToken))) {
+            http_response_code(403);
+            echo json_encode([
+                "success" => false,
+                "error" => "CSRF token mismatch or missing."
+            ]);
+            exit;
+        }
+    }
+}
+
 // Enable error reporting for debugging
 ini_set('display_errors', 1);
 error_reporting(E_ALL);

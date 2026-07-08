@@ -40,6 +40,7 @@ export default function TouristDashboard({
   const [endDate, setEndDate] = useState('');
   const [bookingDetails, setBookingDetails] = useState('');
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [bookingRooms, setBookingRooms] = useState(1);
   const [serviceBookings, setServiceBookings] = useState([]);
 
   const startDateRef = useRef(null);
@@ -116,10 +117,29 @@ export default function TouristDashboard({
 
     if (!selectedService || !startDateRef.current || !endDateRef.current) return;
 
-    const disableRanges = serviceBookings.map(b => ({
-      from: b.start_date,
-      to: b.end_date
-    }));
+    let disableRanges = [];
+    if (selectedService.service_type === 'hotel') {
+      const totalRooms = parseInt(selectedService.no_of_rooms) || 10;
+      disableRanges = [
+        function(date) {
+          const dStr = formatLocalDate(date);
+            
+          let bookedRooms = 0;
+          serviceBookings.forEach(b => {
+            if (dStr >= b.start_date && dStr <= b.end_date) {
+              bookedRooms += parseInt(b.no_of_rooms) || 0;
+            }
+          });
+          
+          return bookedRooms + bookingRooms > totalRooms;
+        }
+      ];
+    } else {
+      disableRanges = serviceBookings.map(b => ({
+        from: b.start_date,
+        to: b.end_date
+      }));
+    }
 
     // Initialize Start Date Picker
     startDateInstance.current = flatpickr(startDateRef.current, {
@@ -130,8 +150,8 @@ export default function TouristDashboard({
         setStartDate(dateStr);
         // Clear end date if it is before start date or overlaps
         if (endDate) {
-          const sVal = new Date(dateStr);
-          const eVal = new Date(endDate);
+          const sVal = parseLocalDate(dateStr);
+          const eVal = parseLocalDate(endDate);
           sVal.setHours(0,0,0,0);
           eVal.setHours(0,0,0,0);
           if (sVal > eVal) {
@@ -141,13 +161,7 @@ export default function TouristDashboard({
             }
           } else {
             // Check overlap
-            const overlap = serviceBookings.some(b => {
-              const sOld = new Date(b.start_date);
-              const eOld = new Date(b.end_date);
-              sOld.setHours(0,0,0,0);
-              eOld.setHours(0,0,0,0);
-              return sVal <= eOld && eVal >= sOld;
-            });
+            const overlap = isDateOverlapping(dateStr, endDate, selectedService.service_type === 'hotel' ? bookingRooms : 1);
             if (overlap) {
               setEndDate('');
               if (endDateInstance.current) {
@@ -181,7 +195,7 @@ export default function TouristDashboard({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedService, serviceBookings]);
+  }, [selectedService, serviceBookings, bookingRooms]);
 
   // Adjust minDate of End Date Picker when startDate changes
   useEffect(() => {
@@ -276,33 +290,69 @@ export default function TouristDashboard({
     }
   };
 
-  const isDateOverlapping = (start, end) => {
-    if (!start || !end) return false;
-    const sNew = new Date(start);
-    const eNew = new Date(end);
-    sNew.setHours(0,0,0,0);
-    eNew.setHours(0,0,0,0);
+  const parseLocalDate = (dateStr) => {
+    const parts = dateStr.split('-');
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  };
 
-    return serviceBookings.some(b => {
-      const sOld = new Date(b.start_date);
-      const eOld = new Date(b.end_date);
-      sOld.setHours(0,0,0,0);
-      eOld.setHours(0,0,0,0);
-      return sNew <= eOld && eNew >= sOld;
-    });
+  const formatLocalDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const isDateOverlapping = (start, end, requestedRooms = 1) => {
+    if (!start || !end) return false;
+    if (selectedService && selectedService.service_type === 'hotel') {
+      const totalRooms = parseInt(selectedService.no_of_rooms) || 10;
+      const startD = parseLocalDate(start);
+      const endD = parseLocalDate(end);
+      
+      for (let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
+        const dStr = formatLocalDate(d);
+          
+        let bookedRooms = 0;
+        serviceBookings.forEach(b => {
+          if (dStr >= b.start_date && dStr <= b.end_date) {
+            bookedRooms += parseInt(b.no_of_rooms) || 0;
+          }
+        });
+        
+        if (bookedRooms + requestedRooms > totalRooms) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      const sNew = parseLocalDate(start);
+      const eNew = parseLocalDate(end);
+      sNew.setHours(0,0,0,0);
+      eNew.setHours(0,0,0,0);
+
+      return serviceBookings.some(b => {
+        const sOld = parseLocalDate(b.start_date);
+        const eOld = parseLocalDate(b.end_date);
+        sOld.setHours(0,0,0,0);
+        eOld.setHours(0,0,0,0);
+        return sNew <= eOld && eNew >= sOld;
+      });
+    }
   };
 
   const handleCreateBooking = async (e) => {
     e.preventDefault();
     if (bookingSubmitting) return;
 
-    if (new Date(startDate) > new Date(endDate)) {
+    if (parseLocalDate(startDate) > parseLocalDate(endDate)) {
       alert("Start date cannot be after end date.");
       return;
     }
 
-    if (isDateOverlapping(startDate, endDate)) {
-      alert("This service is already booked for the selected dates. Please choose a different date range.");
+    const roomsToBook = selectedService.service_type === 'hotel' ? bookingRooms : 1;
+
+    if (isDateOverlapping(startDate, endDate, roomsToBook)) {
+      alert("Selected dates or rooms are unavailable. Please choose a different option.");
       return;
     }
 
@@ -313,12 +363,14 @@ export default function TouristDashboard({
         selectedService.service_type,
         startDate,
         endDate,
-        bookingDetails
+        bookingDetails,
+        roomsToBook
       );
       alert(res.message);
       setStartDate('');
       setEndDate('');
       setBookingDetails('');
+      setBookingRooms(1);
       safeHideModal('bookServiceModal');
       setSelectedService(null);
       fetchBookings();
@@ -527,6 +579,8 @@ export default function TouristDashboard({
         handleCreateBooking={handleCreateBooking} 
         startDateRef={startDateRef} 
         endDateRef={endDateRef} 
+        bookingRooms={bookingRooms}
+        setBookingRooms={setBookingRooms}
       />
 
       <ReviewModal 
