@@ -10,9 +10,23 @@ class BookingRepository {
 
     // Fetches the daily rate, institution name, email, and contact info for a service
     public function getServicePriceAndProvider($serviceId) {
-        $stmt = $this->db->prepare("SELECT price, name_of_institute, email, contact_no FROM services WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT price, name_of_institute, email, contact_no, no_of_rooms FROM services WHERE id = ?");
         $stmt->execute([$serviceId]);
         return $stmt->fetch();
+    }
+
+    // Retrieves all overlapping bookings for capacity checks
+    public function getOverlappingBookings($serviceId, $startDate, $endDate) {
+        $stmt = $this->db->prepare("
+            SELECT start_date, end_date, no_of_rooms 
+            FROM bookings 
+            WHERE service_id = ? 
+            AND status IN ('pending', 'completed')
+            AND start_date <= ? 
+            AND end_date >= ?
+        ");
+        $stmt->execute([$serviceId, $endDate, $startDate]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Verifies if there are active bookings overlapping with the desired date range
@@ -34,8 +48,8 @@ class BookingRepository {
 
     // Inserts a new booking record with a pending status
     public function create($data, $ref_no, $total_price) {
-        $sql = "INSERT INTO bookings (tourist_id, service_id, ref_no, start_date, end_date, price, status, booking_details)
-                VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)";
+        $sql = "INSERT INTO bookings (tourist_id, service_id, ref_no, start_date, end_date, price, status, booking_details, no_of_rooms)
+                VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)";
         $stmt = $this->db->prepare($sql);
         $result = $stmt->execute([
             $data['tourist_id'],
@@ -44,7 +58,8 @@ class BookingRepository {
             $data['start_date'],
             $data['end_date'],
             $total_price,
-            $data['booking_details'] ?? ''
+            $data['booking_details'] ?? '',
+            $data['service_type'] === 'hotel' ? intval($data['no_of_rooms']) : 1
         ]);
         if ($result) {
             return $this->db->lastInsertId();
@@ -69,7 +84,7 @@ class BookingRepository {
     // Retrieves all pending/completed booking dates for a service
     public function getByServiceId($serviceId) {
         $stmt = $this->db->prepare("
-            SELECT start_date, end_date 
+            SELECT start_date, end_date, no_of_rooms 
             FROM bookings 
             WHERE service_id = ? 
             AND status IN ('pending', 'completed')

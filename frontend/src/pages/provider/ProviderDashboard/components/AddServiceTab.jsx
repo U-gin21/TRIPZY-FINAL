@@ -10,6 +10,7 @@ export default function AddServiceTab({ currentUser, setActiveTab, fetchListings
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState(null);
+  const [noOfRooms, setNoOfRooms] = useState('');
 
   const handleCreateService = async (e) => {
     e.preventDefault();
@@ -37,6 +38,13 @@ export default function AddServiceTab({ currentUser, setActiveTab, fetchListings
       return;
     }
 
+    if (serviceType === 'hotel') {
+      if (!noOfRooms || isNaN(noOfRooms) || parseInt(noOfRooms) <= 0) {
+        alert('Please enter a valid number of rooms for the hotel.');
+        return;
+      }
+    }
+
     try {
       const formData = new FormData();
       formData.append('service_type', serviceType);
@@ -45,6 +53,9 @@ export default function AddServiceTab({ currentUser, setActiveTab, fetchListings
       formData.append('email', email);
       formData.append('price', price);
       formData.append('description', description);
+      if (serviceType === 'hotel') {
+        formData.append('no_of_rooms', noOfRooms);
+      }
       if (photo) {
         formData.append('photo', photo);
       } else {
@@ -60,6 +71,7 @@ export default function AddServiceTab({ currentUser, setActiveTab, fetchListings
       setPrice('');
       setDescription('');
       setPhoto(null);
+      setNoOfRooms('');
       
       setActiveTab('listings');
       fetchListings();
@@ -120,7 +132,7 @@ export default function AddServiceTab({ currentUser, setActiveTab, fetchListings
           </div>
 
           <div className="row">
-            <div className="col-md-6 mb-3">
+            <div className="col-md-4 mb-3">
               <label className="form-label small fw-bold">Price / Day (LKR)</label>
               <input 
                 type="number" 
@@ -131,7 +143,21 @@ export default function AddServiceTab({ currentUser, setActiveTab, fetchListings
                 placeholder="e.g. 5000"
               />
             </div>
-            <div className="col-md-6 mb-3">
+            {serviceType === 'hotel' && (
+              <div className="col-md-4 mb-3">
+                <label className="form-label small fw-bold">Total Rooms Available</label>
+                <input 
+                  type="number" 
+                  className="form-control rounded-3" 
+                  min="1"
+                  value={noOfRooms} 
+                  onChange={(e) => setNoOfRooms(e.target.value)} 
+                  required 
+                  placeholder="e.g. 10"
+                />
+              </div>
+            )}
+            <div className={serviceType === 'hotel' ? "col-md-4 mb-3" : "col-md-6 mb-3"}>
               <label className="form-label small fw-bold">Listing Image / Photo</label>
               <input 
                 type="file" 

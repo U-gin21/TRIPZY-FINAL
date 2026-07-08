@@ -1,20 +1,36 @@
 import React, { useState } from 'react';
 import PageHero from '../../../components/common/PageHero';
 import Contact_us_hero from '../../../assets/Contact_us_hero.jpg';
+import { apiRequest } from '../../../api';
 
 export default function ContactUs() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Thank you! Your message was submitted successfully.');
-    setName('');
-    setEmail('');
-    setSubject('');
-    setMessage('');
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await apiRequest('auth', 'contact', 'POST', {
+        name,
+        email,
+        subject,
+        message
+      });
+      alert(res.message || 'Thank you! Your message was submitted successfully.');
+      setName('');
+      setEmail('');
+      setSubject('');
+      setMessage('');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -26,12 +42,12 @@ export default function ContactUs() {
         backgroundImage={Contact_us_hero}
       />
 
-      <div className="container pb-5">
+      <div className="container py-4 py-md-5">
 
-        <div className="row g-5 justify-content-center">
+        <div className="row g-4 g-lg-5 justify-content-center">
           {/* Info Grid */}
-          <div className="col-lg-5">
-            <div className="card glass-card p-4 border-0 mb-4 h-100 d-flex flex-column justify-content-between">
+          <div className="col-12 col-lg-5">
+            <div className="card glass-card p-3 p-md-4 border-0 mb-4 h-lg-100 d-flex flex-column justify-content-between">
               <div>
                 <h4 className="fw-bold mb-4 text-gradient">Get In Touch</h4>
                 <div className="d-flex align-items-start gap-3 mb-4">
@@ -78,8 +94,8 @@ export default function ContactUs() {
           </div>
 
           {/* Message Form */}
-          <div className="col-lg-6">
-            <div className="card glass-card p-4 border-0">
+          <div className="col-12 col-lg-6">
+            <div className="card glass-card p-3 p-md-4 border-0">
               <h4 className="fw-bold mb-4 text-gradient">Send a Message</h4>
 
               <form onSubmit={handleSubmit}>
@@ -131,8 +147,8 @@ export default function ContactUs() {
                   ></textarea>
                 </div>
 
-                <button type="submit" className="btn btn-gradient w-100 py-2 btn-lg mt-2 shadow-sm">
-                  Send Inquiry
+                <button type="submit" className="btn btn-gradient w-100 py-2 btn-lg mt-2 shadow-sm" disabled={submitting}>
+                  {submitting ? 'Sending...' : 'Send Inquiry'}
                 </button>
               </form>
             </div>

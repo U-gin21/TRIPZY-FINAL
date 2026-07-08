@@ -22,6 +22,193 @@
   background: rgba(255, 255, 255, 0.18);
 }
 
+/* Premium Weather Display Styles */
+.weather-widget-premium {
+  position: relative;
+  border-radius: 24px;
+  padding: 24px;
+  overflow: hidden;
+  color: #fff;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.weather-widget-premium.clear-theme {
+  background: linear-gradient(135deg, #ff8c00 0%, #ff5e3a 50%, #f12711 100%);
+  box-shadow: 0 15px 35px rgba(241, 39, 17, 0.25);
+}
+
+.weather-widget-premium.rain-theme {
+  background: linear-gradient(135deg, #0d3856 0%, #154c79 50%, #216ba5 100%);
+  box-shadow: 0 15px 35px rgba(33, 107, 165, 0.25);
+}
+
+.weather-widget-premium.wind-theme {
+  background: linear-gradient(135deg, #09473b 0%, #0d6e5d 50%, #14967f 100%);
+  box-shadow: 0 15px 35px rgba(20, 150, 127, 0.25);
+}
+
+.weather-widget-premium.mist-theme {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 50%, #6b7280 100%);
+  box-shadow: 0 15px 35px rgba(107, 114, 128, 0.25);
+}
+
+.weather-widget-premium.cloud-theme {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #4a5d6e 100%);
+  box-shadow: 0 15px 35px rgba(74, 93, 110, 0.25);
+}
+
+.weather-widget-premium .glowing-backdrop {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.4;
+  z-index: 1;
+}
+
+.weather-widget-premium.clear-theme .glowing-backdrop {
+  background: #ffe066;
+}
+
+.weather-widget-premium.rain-theme .glowing-backdrop {
+  background: #00d2ff;
+}
+
+.weather-widget-premium.wind-theme .glowing-backdrop {
+  background: #52c234;
+}
+
+.weather-widget-premium.mist-theme .glowing-backdrop {
+  background: #cbd5e1;
+}
+
+.weather-widget-premium.cloud-theme .glowing-backdrop {
+  background: #94a3b8;
+}
+
+/* Glass Details Grid */
+.weather-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.weather-detail-card {
+  border-radius: 16px;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.25s, background 0.25s;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(5px);
+}
+
+.weather-detail-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Custom Advisory Card */
+.advisory-card-premium {
+  border-radius: 18px;
+  border-left: 5px solid;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
+}
+
+.advisory-card-premium.advisory-success {
+  background: #eafaf1 !important;
+  border-color: #2ecc71 !important;
+  color: #27ae60 !important;
+}
+
+.advisory-card-premium.advisory-warning {
+  background: #fef9e7 !important;
+  border-color: #f1c40f !important;
+  color: #d35400 !important;
+}
+
+.advisory-card-premium.advisory-danger {
+  background: #fdebd0 !important;
+  border-color: #e74c3c !important;
+  color: #c0392b !important;
+}
+
+[data-theme="dark"] .advisory-card-premium.advisory-success {
+  background: #143324 !important;
+  color: #2ecc71 !important;
+  border-color: #2ecc71 !important;
+}
+
+[data-theme="dark"] .advisory-card-premium.advisory-warning {
+  background: #3d3114 !important;
+  color: #f1c40f !important;
+  border-color: #f1c40f !important;
+}
+
+[data-theme="dark"] .advisory-card-premium.advisory-danger {
+  background: #3a1919 !important;
+  color: #ff6b6b !important;
+  border-color: #ff6b6b !important;
+}
+/* Forecast Outlook Grid styles */
+.forecast-grid-container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.forecast-card-premium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 6px;
+  border-radius: 14px;
+  background: var(--input-bg);
+  border: 1px solid var(--table-border);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.01);
+}
+
+.forecast-card-premium:hover {
+  transform: translateY(-3px) scale(1.02);
+  border-color: var(--primary-color);
+  box-shadow: 0 6px 15px rgba(0, 154, 167, 0.08);
+}
+
+.forecast-card-premium.active-forecast {
+  border: 2px solid var(--primary-color) !important;
+  background: rgba(0, 154, 167, 0.04);
+  box-shadow: 0 6px 15px rgba(0, 154, 167, 0.12);
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"] .forecast-card-premium.active-forecast {
+  background: rgba(0, 154, 167, 0.08);
+}
+
+@media (max-width: 991px) {
+  .forecast-grid-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .forecast-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* Glassmorphic Search Bar styles */
 .glassmorphic-search-bar input::placeholder {
   color: rgba(255, 255, 255, 0.6) !important;

@@ -12,5 +12,9 @@ export const providerApi = {
   fetchNotifications: async () => {
     const res = await apiRequest('notifications', 'list');
     return res.notifications || [];
+  },
+  fetchReviews: async () => {
+    const res = await apiRequest('services', 'provider_reviews');
+    return res.reviews || [];
   }
 };

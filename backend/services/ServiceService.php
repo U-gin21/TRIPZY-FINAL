@@ -82,4 +82,9 @@ class ServiceService {
     public function getStats() {
         return $this->serviceRepo->getStats();
     }
+
+    // Retrieves reviews for all services owned by a specific provider
+    public function getReviewsForProvider($providerId) {
+        return $this->serviceRepo->getReviewsForProvider($providerId);
+    }
 }

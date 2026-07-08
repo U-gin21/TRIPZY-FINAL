@@ -115,4 +115,11 @@ class ServicesController {
         $reviews = $this->serviceService->getAllReviews();
         return ["success" => true, "reviews" => $reviews];
     }
+
+    // Endpoint retrieves all reviews left for any of the provider's services
+    public function provider_reviews($input, $args) {
+        AuthMiddleware::requireProvider();
+        $reviews = $this->serviceService->getReviewsForProvider($_SESSION['user_id']);
+        return ["success" => true, "reviews" => $reviews];
+    }
 }

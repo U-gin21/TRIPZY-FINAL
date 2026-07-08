@@ -191,11 +191,11 @@ export default function App() {
           }
           localStorage.removeItem('tripzy_logged_in');
           sessionStorage.setItem('tripzy_session_active', 'true');
-          setLoading(false);
+          await checkSession();
         }
       } else {
         sessionStorage.setItem('tripzy_session_active', 'true');
-        setLoading(false);
+        await checkSession();
       }
     };
     initSession();

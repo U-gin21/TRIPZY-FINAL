@@ -71,8 +71,10 @@ export default function FAQs({ currentUser, onNavigate }) {
   };
 
   const filteredFaqs = faqs.filter(faq =>
-    faq.question.toLowerCase().includes(search.toLowerCase()) ||
-    (faq.answer && faq.answer.toLowerCase().includes(search.toLowerCase()))
+    !faq.user_id && (
+      faq.question.toLowerCase().includes(search.toLowerCase()) ||
+      (faq.answer && faq.answer.toLowerCase().includes(search.toLowerCase()))
+    )
   );
 
   const filteredUserQas = userQas.filter(q =>

@@ -56,6 +56,7 @@ class CompanionRepository {
             FROM companion_posts cp
             JOIN users u ON cp.owner_id = u.id
             WHERE cp.status = 'open'
+              AND cp.end_date >= CURDATE()
         ";
         $params = [];
 

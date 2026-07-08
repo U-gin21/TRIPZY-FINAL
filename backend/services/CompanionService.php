@@ -69,6 +69,9 @@ class CompanionService {
         if ($post['status'] !== 'open') {
             throw new ValidationException("This travel companion finder post is closed.");
         }
+        if (strtotime($post['end_date']) < strtotime(date('Y-m-d'))) {
+            throw new ValidationException("This travel companion finder post has expired because the trip end date has passed.");
+        }
         if ($post['owner_id'] == $data['requester_id']) {
             throw new ValidationException("You cannot send a join request to your own trip post.");
         }

@@ -35,13 +35,14 @@ export const touristApi = {
       message
     });
   },
-  createBooking: async (serviceId, serviceType, startDate, endDate, bookingDetails) => {
+  createBooking: async (serviceId, serviceType, startDate, endDate, bookingDetails, noOfRooms) => {
     return await apiRequest('bookings', 'create', 'POST', {
       service_id: serviceId,
       service_type: serviceType,
       start_date: startDate,
       end_date: endDate,
-      booking_details: bookingDetails
+      booking_details: bookingDetails,
+      no_of_rooms: noOfRooms
     });
   },
   addReview: async (serviceId, rating, comment) => {

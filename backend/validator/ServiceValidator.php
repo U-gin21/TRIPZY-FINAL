@@ -15,6 +15,12 @@ class ServiceValidator {
             throw new ValidationException("Invalid service type category.");
         }
 
+        if ($input['service_type'] === 'hotel') {
+            if (!isset($input['no_of_rooms']) || !is_numeric($input['no_of_rooms']) || intval($input['no_of_rooms']) <= 0) {
+                throw new ValidationException("Number of rooms is required and must be a positive integer for hotel services.");
+            }
+        }
+
         if (strlen($input['name_of_institute']) > 150 || preg_match('/^\d+$/', $input['name_of_institute'])) {
             throw new ValidationException("Institution name cannot consist only of numbers and must not exceed 150 characters.");
         }

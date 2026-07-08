@@ -13,7 +13,8 @@ class FaqsController {
     // Endpoint lists all FAQ records in the system
     public function list($input, $args) {
         $faqs = $this->faqService->getAll();
-        return ["success" => true, "faqs" => $faqs];
+        $user_qas = $this->faqService->getUserQAs();
+        return ["success" => true, "faqs" => $faqs, "user_qas" => $user_qas];
     }
 
     // Endpoint creates a new standard FAQ question and answer
@@ -46,5 +47,17 @@ class FaqsController {
         }
         $this->faqService->delete($id);
         return ["success" => true, "message" => "FAQ deleted successfully."];
+    }
+
+    // Endpoint allows authenticated users to submit a new question for admin review
+    public function ask($input, $args) {
+        AuthMiddleware::requireLogin();
+        
+        if (empty($input['question'])) {
+            throw new ValidationException("Question is required.");
+        }
+        
+        $this->faqService->askQuestion($input['question'], $_SESSION['user_id']);
+        return ["success" => true, "message" => "Question submitted successfully. An administrator will reply soon!"];
     }
 }

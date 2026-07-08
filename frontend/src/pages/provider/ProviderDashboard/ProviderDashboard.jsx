@@ -7,6 +7,7 @@ import ListingsTab from './components/ListingsTab';
 import AddServiceTab from './components/AddServiceTab';
 import ProfileTab from './components/ProfileTab';
 import BookingsTab from './components/BookingsTab';
+import ReviewsTab from './components/ReviewsTab';
 import CustomerDetailsModal from './components/CustomerDetailsModal';
 import NotificationsTab from '../../../components/common/NotificationsTab';
 
@@ -21,6 +22,7 @@ export default function ProviderDashboard({
   const [listings, setListings] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [reviews, setReviews] = useState([]);
 
   // Selected Booking Customer Details Modal
   const [selectedCust, setSelectedCust] = useState(null);
@@ -29,6 +31,7 @@ export default function ProviderDashboard({
     fetchListings();
     fetchBookings();
     fetchNotifications();
+    fetchReviews();
   }, []);
 
   const fetchListings = async () => {
@@ -55,6 +58,15 @@ export default function ProviderDashboard({
       setNotifications(notifications);
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const reviews = await providerApi.fetchReviews();
+      setReviews(reviews);
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
     }
   };
 
@@ -109,6 +121,14 @@ export default function ProviderDashboard({
           <NotificationsTab 
             notifications={notifications} 
             onRefresh={fetchNotifications}
+          />
+        )}
+
+        {activeTab === 'reviews' && (
+          <ReviewsTab 
+            listings={listings}
+            reviews={reviews} 
+            onRefresh={fetchReviews} 
           />
         )}
       </div>

@@ -35,14 +35,41 @@ class BookingService {
             throw new ValidationException("Start date cannot be after end date.");
         }
 
-        // Check for date overlap for the same service (pending or completed bookings)
-        if ($this->bookingRepo->checkDateOverlap($data['service_id'], $data['start_date'], $data['end_date'])) {
-            throw new ValidationException("This service is already booked for the selected dates. Please choose a different date range.");
+        // Check for date overlap or room availability
+        if ($data['service_type'] === 'hotel') {
+            $requested_rooms = isset($data['no_of_rooms']) ? intval($data['no_of_rooms']) : 1;
+            $total_rooms = isset($service['no_of_rooms']) ? intval($service['no_of_rooms']) : 1;
+
+            $overlappingBookings = $this->bookingRepo->getOverlappingBookings($data['service_id'], $data['start_date'], $data['end_date']);
+
+            $start_ts = strtotime($data['start_date']);
+            $end_ts = strtotime($data['end_date']);
+
+            for ($curr = $start_ts; $curr <= $end_ts; $curr = strtotime('+1 day', $curr)) {
+                $curr_date = date('Y-m-d', $curr);
+                $booked_on_day = 0;
+                foreach ($overlappingBookings as $b) {
+                    $b_start = strtotime($b['start_date']);
+                    $b_end = strtotime($b['end_date']);
+                    if ($curr >= $b_start && $curr <= $b_end) {
+                        $booked_on_day += intval($b['no_of_rooms']);
+                    }
+                }
+
+                if ($booked_on_day + $requested_rooms > $total_rooms) {
+                    throw new ValidationException("Not enough rooms available on $curr_date. Only " . ($total_rooms - $booked_on_day) . " room(s) left.");
+                }
+            }
+        } else {
+            if ($this->bookingRepo->checkDateOverlap($data['service_id'], $data['start_date'], $data['end_date'])) {
+                throw new ValidationException("This service is already booked for the selected dates. Please choose a different date range.");
+            }
         }
 
-        // Calculate price based on duration (inclusive of both start and end date)
+        // Calculate price based on duration (inclusive of both start and end date) and room count if hotel
         $days = $start->diff($end)->days + 1;
-        $total_price = $service['price'] * $days;
+        $rooms = ($data['service_type'] === 'hotel') ? (isset($data['no_of_rooms']) ? intval($data['no_of_rooms']) : 1) : 1;
+        $total_price = $service['price'] * $days * $rooms;
 
         $bookingId = $this->bookingRepo->create($data, $ref_no, $total_price);
 
@@ -60,8 +87,15 @@ class BookingService {
                 $body .= "<li><strong>Booking Ref No:</strong> " . $ref_no . "</li>";
                 $body .= "<li><strong>Service:</strong> " . ucfirst($data['service_type']) . " (" . htmlspecialchars($service['name_of_institute']) . ")</li>";
                 $body .= "<li><strong>Duration:</strong> " . $data['start_date'] . " to " . $data['end_date'] . " ($days day/s)</li>";
+                if ($data['service_type'] === 'hotel') {
+                    $body .= "<li><strong>Rooms Booked:</strong> " . $rooms . "</li>";
+                }
                 $body .= "<li><strong>Rate per Day:</strong> LKR " . number_format($service['price'], 2) . "</li>";
-                $body .= "<li><strong>Total Cost:</strong> LKR " . number_format($service['price'], 2) . " x " . $days . " day/s = LKR " . number_format($total_price, 2) . "</li>";
+                if ($data['service_type'] === 'hotel') {
+                    $body .= "<li><strong>Total Cost:</strong> LKR " . number_format($service['price'], 2) . " x " . $days . " day/s x " . $rooms . " room(s) = LKR " . number_format($total_price, 2) . "</li>";
+                } else {
+                    $body .= "<li><strong>Total Cost:</strong> LKR " . number_format($service['price'], 2) . " x " . $days . " day/s = LKR " . number_format($total_price, 2) . "</li>";
+                }
                 $body .= "<li><strong>Payment Mode:</strong> Offline (Pay on Arrival / Physical Payment to Provider)</li>";
                 $body .= "<li><strong>Status:</strong> PENDING CONFIRMATION</li>";
                 $body .= "</ul>";
@@ -76,8 +110,15 @@ class BookingService {
                 $provider_body .= "<p>You have received a new booking request for your service: <strong>" . htmlspecialchars($service['name_of_institute']) . "</strong>.</p>";
                 $provider_body .= "<p><strong>Client:</strong> " . htmlspecialchars($tourist['full_name']) . " (" . htmlspecialchars($tourist['email']) . ")</p>";
                 $provider_body .= "<p><strong>Dates:</strong> " . $data['start_date'] . " to " . $data['end_date'] . " ($days day/s)</p>";
+                if ($data['service_type'] === 'hotel') {
+                    $provider_body .= "<p><strong>Rooms Booked:</strong> " . $rooms . "</p>";
+                }
                 $provider_body .= "<p><strong>Rate per Day:</strong> LKR " . number_format($service['price'], 2) . "</p>";
-                $provider_body .= "<p><strong>Price:</strong> LKR " . number_format($service['price'], 2) . " x " . $days . " day/s = LKR " . number_format($total_price, 2) . "</p>";
+                if ($data['service_type'] === 'hotel') {
+                    $provider_body .= "<p><strong>Price:</strong> LKR " . number_format($service['price'], 2) . " x " . $days . " day/s x " . $rooms . " room(s) = LKR " . number_format($total_price, 2) . "</p>";
+                } else {
+                    $provider_body .= "<p><strong>Price:</strong> LKR " . number_format($service['price'], 2) . " x " . $days . " day/s = LKR " . number_format($total_price, 2) . "</p>";
+                }
                 $provider_body .= "<p>Please review and update the status in your Provider Dashboard.</p>";
                 
                 Mailer::send($service['email'], $provider_subject, $provider_body);
@@ -134,7 +175,8 @@ class BookingService {
             $end = new DateTime($booking['end_date']);
             $days = $start->diff($end)->days + 1;
             
-            $rate = $service ? $service['price'] : ($booking['price'] / $days);
+            $rooms = ($booking['service_type'] === 'hotel') ? intval($booking['no_of_rooms'] ?: 1) : 1;
+            $rate = $service ? $service['price'] : ($booking['price'] / ($days * $rooms));
 
             // Email status update to Tourist
             $subject = "Tripzy Booking Status Updated - Ref: " . $booking['ref_no'];
@@ -146,8 +188,15 @@ class BookingService {
             $body .= "<li><strong>Booking Ref No:</strong> " . $booking['ref_no'] . "</li>";
             $body .= "<li><strong>Service:</strong> " . ucfirst($booking['service_type']) . " (" . htmlspecialchars($booking['name_of_institute']) . ")</li>";
             $body .= "<li><strong>Duration:</strong> " . $booking['start_date'] . " to " . $booking['end_date'] . " ($days day/s)</li>";
+            if ($booking['service_type'] === 'hotel') {
+                $body .= "<li><strong>Rooms Booked:</strong> " . $rooms . "</li>";
+            }
             $body .= "<li><strong>Rate per Day:</strong> LKR " . number_format($rate, 2) . "</li>";
-            $body .= "<li><strong>Total Cost:</strong> LKR " . number_format($rate, 2) . " x " . $days . " day/s = LKR " . number_format($booking['price'], 2) . "</li>";
+            if ($booking['service_type'] === 'hotel') {
+                $body .= "<li><strong>Total Cost:</strong> LKR " . number_format($rate, 2) . " x " . $days . " day/s x " . $rooms . " room(s) = LKR " . number_format($booking['price'], 2) . "</li>";
+            } else {
+                $body .= "<li><strong>Total Cost:</strong> LKR " . number_format($rate, 2) . " x " . $days . " day/s = LKR " . number_format($booking['price'], 2) . "</li>";
+            }
             $body .= "</ul>";
 
             if ($status === 'completed') {

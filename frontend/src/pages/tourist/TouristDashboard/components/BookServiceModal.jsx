@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function BookServiceModal({ 
   selectedService, 
   startDate, 
@@ -9,7 +7,9 @@ export default function BookServiceModal({
   bookingSubmitting, 
   handleCreateBooking, 
   startDateRef, 
-  endDateRef 
+  endDateRef,
+  bookingRooms,
+  setBookingRooms
 }) {
   return (
     <div className="modal fade" id="bookServiceModal" tabIndex="-1" aria-hidden="true">
@@ -25,8 +25,26 @@ export default function BookServiceModal({
                 <div className="bg-light p-3 rounded-3 mb-3">
                   <span className="small text-muted d-block">Booking Service:</span>
                   <strong className="text-dark">{selectedService.name_of_institute}</strong>
-                  <span className="d-block text-success fw-bold">LKR {Number(selectedService.price).toLocaleString()} / day</span>
+                  <span className="d-block text-success fw-bold">
+                    LKR {Number(selectedService.price).toLocaleString()} / day 
+                    {selectedService.service_type === 'hotel' && ` (x ${bookingRooms} room/s = LKR ${Number(selectedService.price * bookingRooms).toLocaleString()})`}
+                  </span>
                 </div>
+
+                {selectedService.service_type === 'hotel' && (
+                  <div className="mb-3">
+                    <label className="form-label small fw-bold">Number of Rooms to Book (Available: {selectedService.no_of_rooms})</label>
+                    <input 
+                      type="number" 
+                      className="form-control rounded-3" 
+                      min="1"
+                      max={selectedService.no_of_rooms}
+                      value={bookingRooms} 
+                      onChange={(e) => setBookingRooms(parseInt(e.target.value) || 1)}
+                      required 
+                    />
+                  </div>
+                )}
 
                 <div className="row">
                   <div className="col-6 mb-3">
