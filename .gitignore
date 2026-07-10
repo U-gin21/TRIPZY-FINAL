@@ -15,7 +15,7 @@ backend/logs/
 backend/sessions/
 backend/uploads/
 backend/node_modules/
-backend/vendor/
+backend/vendor/*
 !backend/vendor/phpmailer/
 
 # Environment variables
@@ -32,5 +32,5 @@ backend/vendor/
 .DS_Store
 
 # Root-level build artifacts (if any)
-/index.html
-/assets/
+#/index.html
+#/assets/
