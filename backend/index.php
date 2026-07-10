@@ -20,7 +20,30 @@ spl_autoload_register(function ($className) {
 });
 
 // Load core configurations
-require_once __DIR__ . '/config/db.php';
+$dbConfig = __DIR__ . '/config/db.php';
+if (!file_exists($dbConfig)) {
+    http_response_code(500);
+    header("Content-Type: application/json; charset=UTF-8");
+    $allowed_origins = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:3000'
+    ];
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if ($origin && (in_array($origin, $allowed_origins) || preg_match('/^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?$/', $origin))) {
+        header("Access-Control-Allow-Origin: $origin");
+    } else {
+        header("Access-Control-Allow-Origin: *");
+    }
+    header("Access-Control-Allow-Credentials: true");
+    echo json_encode([
+        "success" => false,
+        "error" => "Database configuration file (backend/config/db.php) is missing. Please copy backend/config/db.php.example to backend/config/db.php and adjust database credentials."
+    ]);
+    exit;
+}
+require_once $dbConfig;
 
 // Dispatch Middleware Layer
 SessionMiddleware::handle();

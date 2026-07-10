@@ -16,6 +16,7 @@ backend/sessions/
 backend/uploads/
 backend/node_modules/
 backend/vendor/
+!backend/vendor/phpmailer/
 
 # Environment variables
 .env

@@ -1,0 +1,8 @@
+<?php
+// Database configuration template
+// Copy this file to 'db.php' in the same folder and update credentials.
+
+define('DB_HOST', '127.0.0.1');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'tripzy_db');

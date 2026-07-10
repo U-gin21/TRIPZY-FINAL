@@ -10,8 +10,9 @@ uploads/
 config/db.php
 config/.env
 
-# Composer
+# Composer / Third-party libraries
 vendor/
+!vendor/phpmailer/
 composer.lock
 
 # IDE
