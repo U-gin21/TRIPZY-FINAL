@@ -1,7 +1,6 @@
 import defaultProfilePhoto from './assets/profile_photo.png';
 
-const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const localHost = window.location.hostname;
+const isDevServer = ['5173', '3000'].includes(window.location.port);
 
 // Dynamically determine the project directory name to avoid hardcoded paths if the repo is cloned with a different folder name
 const getFolderName = () => {
@@ -18,14 +17,14 @@ const getFolderName = () => {
 const folderName = getFolderName();
 const encodedFolder = encodeURIComponent(folderName);
 
-const API_BASE = isLocalDev
-  ? `http://${localHost}/${encodedFolder}/backend`
+const API_BASE = isDevServer
+  ? `${window.location.protocol}//${window.location.hostname}/${encodedFolder}/backend`
   : window.location.origin + `/${encodedFolder}/backend`;
 
 export const getUploadUrl = (path) => {
   if (!path) return '';
-  const root = isLocalDev
-    ? `http://${localHost}/${encodedFolder}`
+  const root = isDevServer
+    ? `${window.location.protocol}//${window.location.hostname}/${encodedFolder}`
     : window.location.origin + `/${encodedFolder}`;
   return `${root}/backend/uploads/${path}`;
 };
