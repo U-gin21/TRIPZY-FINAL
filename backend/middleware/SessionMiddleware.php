@@ -10,8 +10,9 @@ class SessionMiddleware {
         session_save_path($session_dir);
 
         $isHTTPS = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
-        $cookieSameSite = $isHTTPS ? 'None' : 'Lax';
-        $cookieSecure = $isHTTPS;
+        $isLocalhost = isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
+        $cookieSameSite = ($isHTTPS || $isLocalhost) ? 'None' : 'Lax';
+        $cookieSecure = $isHTTPS || $isLocalhost;
 
         session_set_cookie_params([
             'lifetime' => 0,
