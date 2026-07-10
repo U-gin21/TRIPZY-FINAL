@@ -4,13 +4,15 @@ const isDevServer = ['5173', '3000'].includes(window.location.port);
 
 // Dynamically determine the project directory name to avoid hardcoded paths if the repo is cloned with a different folder name
 const getFolderName = () => {
+  if (isDevServer) {
+    return typeof __PROJECT_FOLDER_NAME__ !== 'undefined' ? __PROJECT_FOLDER_NAME__ : 'TRIPZY FINAL';
+  }
   const pathParts = window.location.pathname.split('/');
   // If running in production (on Apache), extract folder name from the URL path.
   // Ignore standard client-side router pathnames if they appear at the start of the path
-  if (pathParts[1] && pathParts[1] !== 'index.html' && !['explore', 'companions', 'about', 'faqs', 'contact', 'auth', 'dashboard'].includes(pathParts[1])) {
+  if (pathParts[1] && pathParts[1] !== 'index.html' && !['home', 'explore', 'companions', 'about', 'faqs', 'contact', 'auth', 'dashboard'].includes(pathParts[1])) {
     return pathParts[1];
   }
-  // In development, fallback to the folder name injected at build time
   return typeof __PROJECT_FOLDER_NAME__ !== 'undefined' ? __PROJECT_FOLDER_NAME__ : 'TRIPZY FINAL';
 };
 
