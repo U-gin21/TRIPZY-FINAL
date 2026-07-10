@@ -2,15 +2,31 @@ import defaultProfilePhoto from './assets/profile_photo.png';
 
 const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 const localHost = window.location.hostname;
+
+// Dynamically determine the project directory name to avoid hardcoded paths if the repo is cloned with a different folder name
+const getFolderName = () => {
+  const pathParts = window.location.pathname.split('/');
+  // If running in production (on Apache), extract folder name from the URL path.
+  // Ignore standard client-side router pathnames if they appear at the start of the path
+  if (pathParts[1] && pathParts[1] !== 'index.html' && !['explore', 'companions', 'about', 'faqs', 'contact', 'auth', 'dashboard'].includes(pathParts[1])) {
+    return pathParts[1];
+  }
+  // In development, fallback to the folder name injected at build time
+  return typeof __PROJECT_FOLDER_NAME__ !== 'undefined' ? __PROJECT_FOLDER_NAME__ : 'TRIPZY FINAL';
+};
+
+const folderName = getFolderName();
+const encodedFolder = encodeURIComponent(folderName);
+
 const API_BASE = isLocalDev
-  ? `http://${localHost}/TRIPZY%20FINAL/backend`
-  : window.location.origin + '/TRIPZY%20FINAL/backend';
+  ? `http://${localHost}/${encodedFolder}/backend`
+  : window.location.origin + `/${encodedFolder}/backend`;
 
 export const getUploadUrl = (path) => {
   if (!path) return '';
   const root = isLocalDev
-    ? `http://${localHost}/TRIPZY%20FINAL`
-    : window.location.origin + '/TRIPZY%20FINAL';
+    ? `http://${localHost}/${encodedFolder}`
+    : window.location.origin + `/${encodedFolder}`;
   return `${root}/backend/uploads/${path}`;
 };
 
