@@ -75,12 +75,20 @@ export async function apiRequest(controller, action, method = 'GET', data = null
       throw new Error(`Invalid JSON response from ${controller}/${action}: ${parseError.message}\n${text}`, { cause: parseError });
     }
 
-    if (!response.ok || json.success === false) {
-      throw new Error(json.error || json.message || `Request failed with status ${response.status}.`);
+    if (json && json.success === false) {
+      const appErr = new Error(json.error || json.message || `Request failed with status ${response.status}.`);
+      appErr.isAppError = true;
+      throw appErr;
+    }
+
+    if (!response.ok) {
+      throw new Error(json?.error || json?.message || `Request failed with status ${response.status}.`);
     }
     return json;
   } catch (error) {
-    console.error(`API Error on ${controller}/${action}:`, error);
+    if (!error.isAppError) {
+      console.error(`API Error on ${controller}/${action}:`, error);
+    }
     throw error;
   }
 }
