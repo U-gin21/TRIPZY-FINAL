@@ -7,11 +7,11 @@ sessions/
 uploads/
 
 # Environment config (local)
-config/db.php
+# config/db.php
 config/.env
 
 # Composer / Third-party libraries
-vendor/
+vendor/*
 !vendor/phpmailer/
 composer.lock
 
