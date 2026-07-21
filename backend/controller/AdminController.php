@@ -45,4 +45,29 @@ class AdminController {
         $data = $this->adminService->getAllUsers();
         return ["success" => true, "users" => $data];
     }
+
+    // Endpoint retrieves list of all contact inquiries
+    public function all_inquiries($input, $args) {
+        AuthMiddleware::requireAdmin();
+        $data = $this->adminService->getAllInquiries();
+        return ["success" => true, "inquiries" => $data];
+    }
+
+    // Endpoint retrieves list of all companion posts for admin monitoring
+    public function all_companion_posts($input, $args) {
+        AuthMiddleware::requireAdmin();
+        $data = $this->adminService->getAllCompanionPosts();
+        return ["success" => true, "posts" => $data];
+    }
+
+    // Endpoint allows administrator to delete a companion post
+    public function delete_companion_post($input, $args) {
+        AuthMiddleware::requireAdmin();
+        $postId = $input['post_id'] ?? $args['post_id'] ?? 0;
+        if (!is_numeric($postId) || intval($postId) <= 0) {
+            throw new ValidationException("Invalid post ID.");
+        }
+        $this->adminService->deleteCompanionPost($postId);
+        return ["success" => true, "message" => "Companion post deleted successfully."];
+    }
 }

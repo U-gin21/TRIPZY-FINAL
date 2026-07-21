@@ -38,9 +38,9 @@ export default function BookServicesTab({ services, serviceTypeFilter, setServic
           {services.map(srv => (
             <div className="col-md-6 col-lg-4" key={srv.id}>
               <div className="card glass-card h-100 border-0 overflow-hidden">
-                <img 
-                  src={getUploadUrl(srv.photo) || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80'} 
-                  alt={srv.name_of_institute} 
+                <img
+                  src={getUploadUrl(srv.photo) || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80'}
+                  alt={srv.name_of_institute}
                   style={{ height: '180px', objectFit: 'cover' }}
                 />
                 <div className="card-body p-4 d-flex flex-column justify-content-between">
@@ -66,7 +66,7 @@ export default function BookServicesTab({ services, serviceTypeFilter, setServic
                       <span className="text-muted small">Price / Day:</span>
                       <h5 className="fw-bold mb-0 text-success">LKR {Number(srv.price).toLocaleString()}</h5>
                     </div>
-                    <button 
+                    <button
                       className="btn btn-gradient btn-sm rounded-pill px-4"
                       data-bs-toggle="modal"
                       data-bs-target="#bookServiceModal"

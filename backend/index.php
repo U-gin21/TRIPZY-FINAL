@@ -57,7 +57,7 @@ if (in_array(strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])) {
 
     // Exempt actions that do not require an active authenticated session
     $exemptedActions = [
-        'auth' => ['login', 'register', 'forgot_password', 'verify_reset_token', 'reset_password']
+        'auth' => ['login', 'register', 'forgot_password', 'verify_reset_token', 'reset_password', 'logout']
     ];
 
     $isExempt = isset($exemptedActions[$controller]) && in_array($action, $exemptedActions[$controller]);

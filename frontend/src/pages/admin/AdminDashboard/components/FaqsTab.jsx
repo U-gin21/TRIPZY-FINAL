@@ -76,21 +76,21 @@ export default function FaqsTab({ faqs, fetchFaqs, showConfirm }) {
             <form onSubmit={handleCreateFaq}>
               <div className="mb-3">
                 <label className="form-label small fw-bold">FAQ Question</label>
-                <input 
-                  type="text" 
-                  className="form-control rounded-3" 
-                  value={faqQuestion} 
-                  onChange={(e) => setFaqQuestion(e.target.value)} 
-                  required 
+                <input
+                  type="text"
+                  className="form-control rounded-3"
+                  value={faqQuestion}
+                  onChange={(e) => setFaqQuestion(e.target.value)}
+                  required
                 />
               </div>
               <div className="mb-4">
                 <label className="form-label small fw-bold">FAQ Answer</label>
-                <textarea 
-                  className="form-control rounded-3" 
-                  rows="4" 
-                  value={faqAnswer} 
-                  onChange={(e) => setFaqAnswer(e.target.value)} 
+                <textarea
+                  className="form-control rounded-3"
+                  rows="4"
+                  value={faqAnswer}
+                  onChange={(e) => setFaqAnswer(e.target.value)}
                   required
                 ></textarea>
               </div>
@@ -98,7 +98,7 @@ export default function FaqsTab({ faqs, fetchFaqs, showConfirm }) {
             </form>
           </div>
         </div>
-        
+
         {/* List of System FAQs */}
         <div className="col-md-8">
           <div className="card glass-card p-4 border-0 shadow-sm">
@@ -115,21 +115,21 @@ export default function FaqsTab({ faqs, fetchFaqs, showConfirm }) {
                         <form onSubmit={handleUpdateFaq} className="border p-3 rounded bg-light bg-opacity-50">
                           <div className="mb-2">
                             <label className="form-label small fw-bold">Question</label>
-                            <input 
-                              type="text" 
-                              className="form-control form-control-sm rounded-3" 
-                              value={editingQuestion} 
-                              onChange={(e) => setEditingQuestion(e.target.value)} 
-                              required 
+                            <input
+                              type="text"
+                              className="form-control form-control-sm rounded-3"
+                              value={editingQuestion}
+                              onChange={(e) => setEditingQuestion(e.target.value)}
+                              required
                             />
                           </div>
                           <div className="mb-3">
                             <label className="form-label small fw-bold">Answer / Response</label>
-                            <textarea 
-                              className="form-control form-control-sm rounded-3" 
-                              rows="3" 
-                              value={editingAnswer} 
-                              onChange={(e) => setEditingAnswer(e.target.value)} 
+                            <textarea
+                              className="form-control form-control-sm rounded-3"
+                              rows="3"
+                              value={editingAnswer}
+                              onChange={(e) => setEditingAnswer(e.target.value)}
                               required
                             ></textarea>
                           </div>
@@ -166,9 +166,9 @@ export default function FaqsTab({ faqs, fetchFaqs, showConfirm }) {
                               {isUnanswered ? '⚠️ Awaiting administrator answer...' : f.answer}
                             </p>
                           </div>
-                          
+
                           <div className="d-flex gap-2 ms-3">
-                            <button 
+                            <button
                               className={`btn btn-sm rounded-circle ${isUnanswered ? 'btn-success text-white' : 'btn-outline-secondary'}`}
                               onClick={() => startEdit(f)}
                               title={isUnanswered ? "Answer Question" : "Edit FAQ"}
@@ -176,9 +176,9 @@ export default function FaqsTab({ faqs, fetchFaqs, showConfirm }) {
                             >
                               <i className={`bi ${isUnanswered ? 'bi-check-circle-fill' : 'bi-pencil'}`}></i>
                             </button>
-                            <button 
-                              className="btn btn-outline-danger btn-sm rounded-circle" 
-                              onClick={() => handleDeleteFaq(f.id)} 
+                            <button
+                              className="btn btn-outline-danger btn-sm rounded-circle"
+                              onClick={() => handleDeleteFaq(f.id)}
                               title="Delete FAQ"
                             >
                               <i className="bi bi-trash"></i>

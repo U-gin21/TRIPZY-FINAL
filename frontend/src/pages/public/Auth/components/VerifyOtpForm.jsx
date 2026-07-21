@@ -6,7 +6,9 @@ export default function VerifyOtpForm({
   handleVerifyToken,
   loading,
   setVerifyMode,
-  setForgotMode
+  setForgotMode,
+  isRegister = false,
+  onBackToRegister
 }) {
   return (
     <form onSubmit={handleVerifyToken}>
@@ -49,8 +51,12 @@ export default function VerifyOtpForm({
           type="button" 
           className="btn btn-link text-decoration-none small text-secondary fw-bold" 
           onClick={() => { 
-            setVerifyMode(false); 
-            setForgotMode(true); 
+            if (isRegister) {
+              onBackToRegister();
+            } else {
+              setVerifyMode(false); 
+              setForgotMode(true); 
+            }
           }}
         >
           Back to Email

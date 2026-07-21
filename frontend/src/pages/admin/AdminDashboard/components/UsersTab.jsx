@@ -114,7 +114,7 @@ export default function UsersTab({ users, handleToggleUserStatus, onViewUserSumm
                         onClick={() => onViewUserSummary(user)}
                       />
                       <div>
-                        <h6 
+                        <h6
                           className="fw-bold mb-0 text-dark text-gradient-hover text-decoration-none"
                           style={{ cursor: 'pointer' }}
                           data-bs-toggle="modal"
@@ -151,6 +151,16 @@ export default function UsersTab({ users, handleToggleUserStatus, onViewUserSumm
                         </strong>
                         <span className="text-muted small" style={{ fontSize: '10px' }}>
                           ({user.review_count || 0} reviews)
+                        </span>
+                      </div>
+                    ) : user.user_type === 'tourist' ? (
+                      <div className="d-flex align-items-center gap-1">
+                        <span className="text-warning fw-bold small" style={{ fontSize: '13px' }}>★</span>
+                        <strong className="small text-dark" style={{ fontSize: '12px' }}>
+                          {user.rating > 0 ? `${user.rating}` : '0.0'}
+                        </strong>
+                        <span className="text-muted small" style={{ fontSize: '10px' }}>
+                          ({user.review_count || 0} rates)
                         </span>
                       </div>
                     ) : (

@@ -40,5 +40,18 @@ export const companionService = {
       request_id: requestId,
       status
     });
+  },
+
+  getRateableParticipants: async (postId) => {
+    const res = await apiRequest('companions', 'get_rateable_participants', 'GET', { post_id: postId });
+    return res.participants || [];
+  },
+
+  submitRating: async (postId, rateeId, rating) => {
+    return await apiRequest('companions', 'submit_rating', 'POST', {
+      post_id: postId,
+      ratee_id: rateeId,
+      rating
+    });
   }
 };

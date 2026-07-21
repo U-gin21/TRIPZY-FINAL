@@ -118,9 +118,9 @@ export default function ListingsTab({ listings, fetchListings, showConfirm }) {
           {listings.map(srv => (
             <div className="col-md-6 col-lg-4" key={srv.id}>
               <div className="card glass-card h-100 border-0 overflow-hidden d-flex flex-column justify-content-between">
-                <img 
-                  src={getUploadUrl(srv.photo) || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80'} 
-                  alt={srv.name_of_institute} 
+                <img
+                  src={getUploadUrl(srv.photo) || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80'}
+                  alt={srv.name_of_institute}
                   style={{ height: '200px', objectFit: 'cover', width: '100%' }}
                 />
                 <div className="p-4">
@@ -146,7 +146,7 @@ export default function ListingsTab({ listings, fetchListings, showConfirm }) {
                   <button className="btn btn-outline-primary btn-sm flex-fill" onClick={() => handleEditInit(srv)}>
                     <i className="bi bi-pencil-square"></i> Edit
                   </button>
-                  <button 
+                  <button
                     className={`btn btn-${srv.status === 'enabled' ? 'outline-warning' : 'warning'} btn-sm flex-fill`}
                     onClick={() => handleToggleStatus(srv.id, srv.status)}
                   >

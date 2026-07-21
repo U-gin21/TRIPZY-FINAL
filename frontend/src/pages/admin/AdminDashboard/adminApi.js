@@ -32,10 +32,21 @@ export const adminApi = {
     const res = await apiRequest('notifications', 'list');
     return res.notifications || [];
   },
+  fetchInquiries: async () => {
+    const res = await apiRequest('admin', 'all_inquiries');
+    return res.inquiries || [];
+  },
   toggleUserStatus: async (id, status) => {
     return await apiRequest('admin', 'approve_user', 'POST', { id, status });
   },
   approveUser: async (id, status) => {
     return await apiRequest('admin', 'approve_user', 'POST', { id, status });
+  },
+  fetchCompanionPosts: async () => {
+    const res = await apiRequest('admin', 'all_companion_posts');
+    return res.posts || [];
+  },
+  deleteCompanionPost: async (postId) => {
+    return await apiRequest('admin', 'delete_companion_post', 'POST', { post_id: postId });
   }
 };

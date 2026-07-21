@@ -55,7 +55,43 @@ class UserRepository {
 
     // Retrieves full user details matching a user ID
     public function getById($id) {
-        $stmt = $this->db->prepare("SELECT id, email, user_type, full_name, name_with_initial, nic_passport, contact_no, gender, date_of_birth, profile_photo, status, created_at FROM users WHERE id = ?");
+        $stmt = $this->db->prepare("
+            SELECT u.*, 
+                   (
+                       CASE 
+                           WHEN u.user_type = 'provider' THEN (
+                               SELECT ROUND(IFNULL(AVG(rev.rating), 0), 1)
+                               FROM reviews rev
+                               JOIN services s ON rev.service_id = s.id
+                               WHERE s.provider_id = u.id
+                           )
+                           WHEN u.user_type = 'tourist' THEN (
+                               SELECT ROUND(IFNULL(AVG(rating), 0), 1)
+                               FROM companion_ratings
+                               WHERE ratee_id = u.id
+                           )
+                           ELSE 0
+                       END
+                   ) as rating,
+                   (
+                       CASE 
+                           WHEN u.user_type = 'provider' THEN (
+                               SELECT COUNT(rev.id)
+                               FROM reviews rev
+                               JOIN services s ON rev.service_id = s.id
+                               WHERE s.provider_id = u.id
+                           )
+                           WHEN u.user_type = 'tourist' THEN (
+                               SELECT COUNT(*)
+                               FROM companion_ratings
+                               WHERE ratee_id = u.id
+                           )
+                           ELSE 0
+                       END
+                   ) as review_count
+            FROM users u
+            WHERE u.id = ?
+        ");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
@@ -105,16 +141,36 @@ class UserRepository {
         $stmt = $this->db->prepare("
             SELECT u.*, 
                    (
-                       SELECT ROUND(IFNULL(AVG(rev.rating), 0), 1)
-                       FROM reviews rev
-                       JOIN services s ON rev.service_id = s.id
-                       WHERE s.provider_id = u.id
+                       CASE 
+                           WHEN u.user_type = 'provider' THEN (
+                               SELECT ROUND(IFNULL(AVG(rev.rating), 0), 1)
+                               FROM reviews rev
+                               JOIN services s ON rev.service_id = s.id
+                               WHERE s.provider_id = u.id
+                           )
+                           WHEN u.user_type = 'tourist' THEN (
+                               SELECT ROUND(IFNULL(AVG(rating), 0), 1)
+                               FROM companion_ratings
+                               WHERE ratee_id = u.id
+                           )
+                           ELSE 0
+                       END
                    ) as rating,
                    (
-                       SELECT COUNT(rev.id)
-                       FROM reviews rev
-                       JOIN services s ON rev.service_id = s.id
-                       WHERE s.provider_id = u.id
+                       CASE 
+                           WHEN u.user_type = 'provider' THEN (
+                               SELECT COUNT(rev.id)
+                               FROM reviews rev
+                               JOIN services s ON rev.service_id = s.id
+                               WHERE s.provider_id = u.id
+                           )
+                           WHEN u.user_type = 'tourist' THEN (
+                               SELECT COUNT(*)
+                               FROM companion_ratings
+                               WHERE ratee_id = u.id
+                           )
+                           ELSE 0
+                       END
                    ) as review_count
             FROM users u
             WHERE u.user_type != 'admin' OR u.email != 'dteugee2003@gmail.com'

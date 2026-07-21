@@ -76,6 +76,14 @@ class CompanionService {
             throw new ValidationException("You cannot send a join request to your own trip post.");
         }
 
+        // Validate gender preference matches requester's gender
+        if ($post['gender_preference'] !== 'Any') {
+            $requesterGender = $this->compRepo->getUserGender($data['requester_id']);
+            if ($requesterGender && strcasecmp($post['gender_preference'], $requesterGender) !== 0) {
+                throw new ValidationException("This trip is open to " . htmlspecialchars($post['gender_preference']) . " companions only. You cannot join.");
+            }
+        }
+
         if ($this->compRepo->existsRequest($data['post_id'], $data['requester_id'])) {
             throw new ValidationException("You have already sent a request to join this trip.");
         }
@@ -117,6 +125,15 @@ class CompanionService {
         $result = $this->compRepo->updateRequestStatus($requestId, $status);
 
         if ($result && $status === 'accepted') {
+            // Close post if companions_needed has been reached
+            $post = $this->compRepo->getPostById($request['post_id']);
+            if ($post) {
+                $acceptedCount = $this->compRepo->getAcceptedCountForPost($request['post_id']);
+                if ($acceptedCount >= intval($post['companions_needed'])) {
+                    $this->compRepo->closePost($request['post_id']);
+                }
+            }
+
             // Share details with requester via email
             $subject = "Tripzy Companion Request Accepted!";
             $body = "<h2>Great News, " . htmlspecialchars($request['requester_name']) . "!</h2>";
@@ -231,5 +248,99 @@ class CompanionService {
             throw new ForbiddenException("Access denied. You can only cancel your own requests.");
         }
         return $this->compRepo->deleteRequest($requestId);
+    }
+
+    // Retrieves other participants for a trip and indicates if the user has already rated them
+    public function getRateableParticipants($postId, $userId) {
+        $post = $this->compRepo->getPostById($postId);
+        if (!$post) {
+            throw new NotFoundException("Companion post not found.");
+        }
+
+        // Verify trip is ended
+        if (strtotime($post['end_date']) >= strtotime(date('Y-m-d'))) {
+            throw new ValidationException("You can only rate companions after the trip end date.");
+        }
+
+        $participants = $this->compRepo->getParticipants($postId);
+        
+        // Trip is confirmed if there is at least one accepted participant (meaning total participants > 1, since post owner is always there)
+        if (count($participants) <= 1) {
+            throw new ValidationException("This trip was not confirmed (no accepted travel companions).");
+        }
+
+        // Check if the current user is a participant of this trip
+        $isUserParticipant = false;
+        foreach ($participants as $p) {
+            if ($p['user_id'] == $userId) {
+                $isUserParticipant = true;
+                break;
+            }
+        }
+
+        if (!$isUserParticipant) {
+            throw new ForbiddenException("Access denied. You were not a participant of this trip.");
+        }
+
+        // Filter out the current user and check rating status for others
+        $rateable = [];
+        foreach ($participants as $p) {
+            if ($p['user_id'] != $userId) {
+                $p['has_rated'] = $this->compRepo->hasRated($postId, $userId, $p['user_id']);
+                $rateable[] = $p;
+            }
+        }
+
+        return $rateable;
+    }
+
+    // Submits a rating for another participant of the trip
+    public function submitRating($postId, $raterId, $rateeId, $rating) {
+        if ($raterId == $rateeId) {
+            throw new ValidationException("You cannot rate yourself.");
+        }
+
+        if (!is_numeric($rating) || intval($rating) < 1 || intval($rating) > 10) {
+            throw new ValidationException("Rating must be an integer between 1 and 10.");
+        }
+
+        $post = $this->compRepo->getPostById($postId);
+        if (!$post) {
+            throw new NotFoundException("Companion post not found.");
+        }
+
+        // Verify trip is ended
+        if (strtotime($post['end_date']) >= strtotime(date('Y-m-d'))) {
+            throw new ValidationException("You can only rate companions after the trip end date.");
+        }
+
+        $participants = $this->compRepo->getParticipants($postId);
+        
+        // Trip is confirmed if there is at least one accepted participant
+        if (count($participants) <= 1) {
+            throw new ValidationException("This trip was not confirmed (no accepted travel companions).");
+        }
+
+        // Check if both rater and ratee are participants
+        $isRaterParticipant = false;
+        $isRateeParticipant = false;
+        foreach ($participants as $p) {
+            if ($p['user_id'] == $raterId) $isRaterParticipant = true;
+            if ($p['user_id'] == $rateeId) $isRateeParticipant = true;
+        }
+
+        if (!$isRaterParticipant) {
+            throw new ForbiddenException("Access denied. You were not a participant of this trip.");
+        }
+        if (!$isRateeParticipant) {
+            throw new ValidationException("The user you are trying to rate was not a participant of this trip.");
+        }
+
+        // Check if already rated
+        if ($this->compRepo->hasRated($postId, $raterId, $rateeId)) {
+            throw new ValidationException("You have already rated this companion for this trip.");
+        }
+
+        return $this->compRepo->submitRating($postId, $raterId, $rateeId, intval($rating));
     }
 }

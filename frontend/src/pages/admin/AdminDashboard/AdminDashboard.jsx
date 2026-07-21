@@ -11,17 +11,19 @@ import FaqsTab from './components/FaqsTab';
 import ProfileTab from './components/ProfileTab';
 import BookingsTab from './components/BookingsTab';
 import UsersTab from './components/UsersTab';
+import InquiriesTab from './components/InquiriesTab';
+import CompanionTab from './components/CompanionTab';
 import NotificationsTab from '../../../components/common/NotificationsTab';
 
-export default function AdminDashboard({ 
-  currentUser, 
-  onProfileUpdate, 
-  onLogout, 
-  activeTab, 
-  setActiveTab, 
-  showConfirm 
+export default function AdminDashboard({
+  currentUser,
+  onProfileUpdate,
+  onLogout,
+  activeTab,
+  setActiveTab,
+  showConfirm
 }) {
-  
+
   // Data states
   const [stats, setStats] = useState(null);
   const [pendingAdmins, setPendingAdmins] = useState([]);
@@ -31,9 +33,12 @@ export default function AdminDashboard({
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  
+  const [inquiries, setInquiries] = useState([]);
+  const [companionPosts, setCompanionPosts] = useState([]);
+
   const [selectedSummaryUser, setSelectedSummaryUser] = useState(null);
   const [approvingUsers, setApprovingUsers] = useState({});
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -43,6 +48,8 @@ export default function AdminDashboard({
     fetchBookings();
     fetchUsers();
     fetchNotifications();
+    fetchInquiries();
+    fetchCompanionPosts();
   }, []);
 
   async function fetchStats() {
@@ -109,6 +116,35 @@ export default function AdminDashboard({
     }
   }
 
+  async function fetchInquiries() {
+    try {
+      const inquiriesData = await adminApi.fetchInquiries();
+      setInquiries(inquiriesData);
+    } catch (err) {
+      console.error("Failed to fetch inquiries:", err);
+    }
+  }
+
+  async function fetchCompanionPosts() {
+    try {
+      const posts = await adminApi.fetchCompanionPosts();
+      setCompanionPosts(posts);
+    } catch (err) {
+      console.error("Failed to fetch companion posts:", err);
+    }
+  }
+
+  async function handleDeleteCompanionPost(postId) {
+    try {
+      await adminApi.deleteCompanionPost(postId);
+      alert("Companion post deleted successfully.");
+      fetchCompanionPosts();
+      fetchStats();
+    } catch (err) {
+      alert(err.message || "Failed to delete companion post.");
+    }
+  }
+
   const handleToggleUserStatus = async (id, currentStatus) => {
     const nextStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
     const actionText = currentStatus === 'suspended' ? 'activate' : 'suspend';
@@ -165,15 +201,31 @@ export default function AdminDashboard({
 
   return (
     <div className="dashboard-container">
+      {/* Mobile Top Header */}
+      <div className="mobile-header-dashboard d-flex align-items-center justify-content-between p-3 d-lg-none text-white w-100">
+        <button className="btn btn-outline-light border-0 p-0" onClick={() => setIsSidebarOpen(true)}>
+          <i className="bi bi-list fs-2"></i>
+        </button>
+        <span className="fw-bold fs-5"><i className="bi bi-shield-lock-fill text-danger me-2"></i>Admin Panel</span>
+        <div style={{ width: '28px' }}></div>
+      </div>
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div className="sidebar-overlay d-lg-none" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
       {/* SIDEBAR */}
-      <Sidebar 
-        currentUser={currentUser} 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        onLogout={onLogout} 
+      <Sidebar
+        currentUser={currentUser}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onLogout={onLogout}
         unreadNotificationsCount={notifications.filter(n => !n.is_read || n.is_read == '0').length}
         pendingApprovalsCount={pendingAdmins.length + pendingProviders.length}
         pendingFaqsCount={faqs.filter(f => !f.answer || f.answer.trim() === '').length}
+        isSidebarOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* ADMIN WORKSPACE */}
@@ -183,39 +235,39 @@ export default function AdminDashboard({
         )}
 
         {activeTab === 'approvals' && (
-          <ApprovalsTab 
-            pendingAdmins={pendingAdmins} 
-            pendingProviders={pendingProviders} 
-            handleApproveUser={handleApproveUser} 
+          <ApprovalsTab
+            pendingAdmins={pendingAdmins}
+            pendingProviders={pendingProviders}
+            handleApproveUser={handleApproveUser}
             approvingUsers={approvingUsers}
           />
         )}
 
         {activeTab === 'destinations' && (
-          <DestinationsTab 
-            destinations={destinations} 
-            fetchDestinations={fetchDestinations} 
-            showConfirm={showConfirm} 
+          <DestinationsTab
+            destinations={destinations}
+            fetchDestinations={fetchDestinations}
+            showConfirm={showConfirm}
           />
         )}
 
         {activeTab === 'faqs' && (
-          <FaqsTab 
-            faqs={faqs} 
-            fetchFaqs={fetchFaqs} 
-            showConfirm={showConfirm} 
+          <FaqsTab
+            faqs={faqs}
+            fetchFaqs={fetchFaqs}
+            showConfirm={showConfirm}
           />
         )}
 
         {activeTab === 'profile' && (
-          <ProfileTab 
-            currentUser={currentUser} 
-            onProfileUpdate={onProfileUpdate} 
-            destinations={destinations} 
-            faqs={faqs} 
-            bookings={bookings} 
-            pendingAdmins={pendingAdmins} 
-            pendingProviders={pendingProviders} 
+          <ProfileTab
+            currentUser={currentUser}
+            onProfileUpdate={onProfileUpdate}
+            destinations={destinations}
+            faqs={faqs}
+            bookings={bookings}
+            pendingAdmins={pendingAdmins}
+            pendingProviders={pendingProviders}
           />
         )}
 
@@ -224,16 +276,27 @@ export default function AdminDashboard({
         )}
 
         {activeTab === 'users' && (
-          <UsersTab 
-            users={users} 
-            handleToggleUserStatus={handleToggleUserStatus} 
+          <UsersTab
+            users={users}
+            handleToggleUserStatus={handleToggleUserStatus}
             onViewUserSummary={setSelectedSummaryUser}
           />
         )}
 
+        {activeTab === 'inquiries' && (
+          <InquiriesTab inquiries={inquiries} />
+        )}
+
+        {activeTab === 'companions' && (
+          <CompanionTab
+            posts={companionPosts}
+            onDeletePost={handleDeleteCompanionPost}
+          />
+        )}
+
         {activeTab === 'notifications' && (
-          <NotificationsTab 
-            notifications={notifications} 
+          <NotificationsTab
+            notifications={notifications}
             onRefresh={fetchNotifications}
           />
         )}
@@ -266,7 +329,12 @@ export default function AdminDashboard({
                         </span>
                         {selectedSummaryUser.user_type === 'provider' && (
                           <span className="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-bold text-uppercase" style={{ fontSize: '11px' }}>
-                            Platform Rating: ★ {selectedSummaryUser.rating > 0 ? `${selectedSummaryUser.rating} (${selectedSummaryUser.review_count})` : 'No reviews'}
+                            Platform Rating: ★ {selectedSummaryUser.rating > 0 ? `${selectedSummaryUser.rating} (${selectedSummaryUser.review_count} reviews)` : 'No reviews'}
+                          </span>
+                        )}
+                        {selectedSummaryUser.user_type === 'tourist' && (
+                          <span className="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-bold text-uppercase" style={{ fontSize: '11px' }}>
+                            Platform Rating: ★ {selectedSummaryUser.rating > 0 ? `${selectedSummaryUser.rating} (${selectedSummaryUser.review_count} rates)` : 'No companion ratings'}
                           </span>
                         )}
                       </div>
@@ -314,10 +382,10 @@ export default function AdminDashboard({
                   <div className="col-md-7">
                     <h5 className="fw-bold text-gradient mb-3">
                       <i className="bi bi-journal-check me-2"></i>
-                      {selectedSummaryUser.user_type === 'tourist' 
-                        ? 'Booking Activity Summary' 
-                        : selectedSummaryUser.user_type === 'admin' 
-                          ? 'Administrative Activity Summary' 
+                      {selectedSummaryUser.user_type === 'tourist'
+                        ? 'Booking Activity Summary'
+                        : selectedSummaryUser.user_type === 'admin'
+                          ? 'Administrative Activity Summary'
                           : 'Service Listings Booking Activity'}
                     </h5>
 
@@ -338,10 +406,10 @@ export default function AdminDashboard({
                       <div className="col-4">
                         <div className="bg-light p-2 rounded text-center">
                           <span className="small text-muted d-block" style={{ fontSize: '10px' }}>
-                            {selectedSummaryUser.user_type === 'tourist' 
-                              ? 'Total Spent' 
-                              : selectedSummaryUser.user_type === 'admin' 
-                                ? 'Account Role' 
+                            {selectedSummaryUser.user_type === 'tourist'
+                              ? 'Total Spent'
+                              : selectedSummaryUser.user_type === 'admin'
+                                ? 'Account Role'
                                 : 'Total Earnings'}
                           </span>
                           <h4 className="fw-bold mb-0 text-success text-capitalize" style={{ fontSize: '12px', marginTop: '6px', overflowWrap: 'anywhere' }}>
@@ -386,8 +454,8 @@ export default function AdminDashboard({
                         <div className="text-center py-4 border rounded">
                           <i className="bi bi-calendar-x text-muted fs-3"></i>
                           <p className="small text-muted mb-0 mt-2">
-                            {selectedSummaryUser.user_type === 'admin' 
-                              ? 'Administrators do not manage bookings.' 
+                            {selectedSummaryUser.user_type === 'admin'
+                              ? 'Administrators do not manage bookings.'
                               : 'No bookings logged for this user.'}
                           </p>
                         </div>

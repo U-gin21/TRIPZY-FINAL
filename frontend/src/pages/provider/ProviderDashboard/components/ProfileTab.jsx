@@ -118,7 +118,7 @@ export default function ProfileTab({ currentUser, onProfileUpdate, listings, boo
             <div className="profile-verified-badge mb-4">
               <i className="bi bi-shield-fill-check"></i> {currentUser.email} (Verified)
             </div>
-            
+
             <div className="px-3">
               <h6 className="fw-bold text-start text-uppercase text-secondary small mb-3 border-bottom pb-2">Business Activity</h6>
               <div className="row g-3 text-start">
@@ -179,7 +179,7 @@ export default function ProfileTab({ currentUser, onProfileUpdate, listings, boo
                   </div>
                   <div className="form-text small">Leave empty to keep your current name.</div>
                 </div>
-                
+
                 <div className="col-md-6">
                   <label className="form-label small fw-bold">Name with Initials</label>
                   <div className="input-group">
@@ -213,7 +213,7 @@ export default function ProfileTab({ currentUser, onProfileUpdate, listings, boo
                 <div className="col-md-12 mt-4 pt-3 border-top">
                   <h6 className="fw-bold text-uppercase text-secondary small mb-3">Verified Personal Registry (Read-only)</h6>
                 </div>
-                
+
                 <div className="col-md-6">
                   <label className="form-label small fw-bold text-muted">Email Address</label>
                   <div className="input-group">
@@ -265,7 +265,7 @@ export default function ProfileTab({ currentUser, onProfileUpdate, listings, boo
                     />
                   </div>
                 </div>
-                
+
                 <div className="col-12 mt-4 pt-3 border-top">
                   <button type="submit" className="btn btn-gradient w-100 py-3 rounded-pill shadow-sm fw-bold d-flex align-items-center justify-content-center gap-2 animate-float-hover" disabled={profileLoading}>
                     {profileLoading ? (

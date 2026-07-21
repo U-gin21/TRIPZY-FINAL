@@ -52,7 +52,10 @@ class CompanionRepository {
     public function getPosts($filters = []) {
         $sql = "
             SELECT cp.*, u.full_name, u.gender as owner_gender, u.profile_photo as owner_photo, u.date_of_birth,
-                   (SELECT GROUP_CONCAT(interest SEPARATOR ', ') FROM companion_post_interests WHERE post_id = cp.id) as travel_interests
+                   (SELECT GROUP_CONCAT(interest SEPARATOR ', ') FROM companion_post_interests WHERE post_id = cp.id) as travel_interests,
+                   ROUND(IFNULL((SELECT AVG(rating) FROM companion_ratings WHERE post_id = cp.id), 0), 1) as trip_rating,
+                   IFNULL((SELECT COUNT(*) FROM companion_ratings WHERE post_id = cp.id), 0) as trip_rating_count,
+                   IFNULL((SELECT COUNT(*) FROM companion_requests WHERE post_id = cp.id AND status = 'accepted'), 0) as accepted_count
             FROM companion_posts cp
             JOIN users u ON cp.owner_id = u.id
             WHERE cp.status = 'open'
@@ -79,7 +82,10 @@ class CompanionRepository {
     public function getPostById($id) {
         $stmt = $this->db->prepare("
             SELECT cp.*, u.full_name, u.email as owner_email, u.contact_no as owner_contact, u.gender as owner_gender, u.profile_photo as owner_photo,
-                   (SELECT GROUP_CONCAT(interest SEPARATOR ', ') FROM companion_post_interests WHERE post_id = cp.id) as travel_interests
+                   (SELECT GROUP_CONCAT(interest SEPARATOR ', ') FROM companion_post_interests WHERE post_id = cp.id) as travel_interests,
+                   ROUND(IFNULL((SELECT AVG(rating) FROM companion_ratings WHERE post_id = cp.id), 0), 1) as trip_rating,
+                   IFNULL((SELECT COUNT(*) FROM companion_ratings WHERE post_id = cp.id), 0) as trip_rating_count,
+                   IFNULL((SELECT COUNT(*) FROM companion_requests WHERE post_id = cp.id AND status = 'accepted'), 0) as accepted_count
             FROM companion_posts cp
             JOIN users u ON cp.owner_id = u.id
             WHERE cp.id = ?
@@ -92,7 +98,10 @@ class CompanionRepository {
     public function getMyPosts($userId) {
         $stmt = $this->db->prepare("
             SELECT cp.*,
-                   (SELECT GROUP_CONCAT(interest SEPARATOR ', ') FROM companion_post_interests WHERE post_id = cp.id) as travel_interests
+                   (SELECT GROUP_CONCAT(interest SEPARATOR ', ') FROM companion_post_interests WHERE post_id = cp.id) as travel_interests,
+                   ROUND(IFNULL((SELECT AVG(rating) FROM companion_ratings WHERE post_id = cp.id), 0), 1) as trip_rating,
+                   IFNULL((SELECT COUNT(*) FROM companion_ratings WHERE post_id = cp.id), 0) as trip_rating_count,
+                   IFNULL((SELECT COUNT(*) FROM companion_requests WHERE post_id = cp.id AND status = 'accepted'), 0) as accepted_count
             FROM companion_posts cp
             WHERE cp.owner_id = ?
             ORDER BY cp.created_at DESC
@@ -134,7 +143,9 @@ class CompanionRepository {
     // Retrieves join requests sent by a tourist
     public function getRequestsSentByTourist($touristId) {
         $stmt = $this->db->prepare("
-            SELECT cr.*, cp.destination_place, cp.start_date, cp.end_date, u.full_name as owner_name, u.email as owner_email, u.contact_no as owner_contact
+            SELECT cr.*, cp.destination_place, cp.start_date, cp.end_date, u.full_name as owner_name, u.email as owner_email, u.contact_no as owner_contact,
+                   ROUND(IFNULL((SELECT AVG(rating) FROM companion_ratings WHERE post_id = cp.id), 0), 1) as trip_rating,
+                   IFNULL((SELECT COUNT(*) FROM companion_ratings WHERE post_id = cp.id), 0) as trip_rating_count
             FROM companion_requests cr
             JOIN companion_posts cp ON cr.post_id = cp.id
             JOIN users u ON cp.owner_id = u.id
@@ -252,5 +263,72 @@ class CompanionRepository {
     public function deleteRequest($requestId) {
         $stmt = $this->db->prepare("DELETE FROM companion_requests WHERE id = ?");
         return $stmt->execute([$requestId]);
+    }
+
+    // Submits a rating from a participant to another participant for a specific trip
+    public function submitRating($postId, $raterId, $rateeId, $rating) {
+        $stmt = $this->db->prepare("
+            INSERT INTO companion_ratings (post_id, rater_id, ratee_id, rating)
+            VALUES (?, ?, ?, ?)
+        ");
+        return $stmt->execute([$postId, $raterId, $rateeId, $rating]);
+    }
+
+    // Checks if a rating already exists for this trip, rater, and ratee
+    public function hasRated($postId, $raterId, $rateeId) {
+        $stmt = $this->db->prepare("
+            SELECT id FROM companion_ratings
+            WHERE post_id = ? AND rater_id = ? AND ratee_id = ?
+        ");
+        $stmt->execute([$postId, $raterId, $rateeId]);
+        return $stmt->fetch() ? true : false;
+    }
+
+    // Retrieves all participants for a specific companion post (owner + accepted requesters)
+    public function getParticipants($postId) {
+        // First get the owner
+        $stmt = $this->db->prepare("
+            SELECT cp.owner_id as user_id, u.full_name, u.email, u.contact_no, u.gender, u.profile_photo, 'host' as role
+            FROM companion_posts cp
+            JOIN users u ON cp.owner_id = u.id
+            WHERE cp.id = ?
+        ");
+        $stmt->execute([$postId]);
+        $owner = $stmt->fetch();
+        
+        // Then get accepted requesters
+        $stmt2 = $this->db->prepare("
+            SELECT cr.requester_id as user_id, u.full_name, u.email, u.contact_no, u.gender, u.profile_photo, 'participant' as role
+            FROM companion_requests cr
+            JOIN users u ON cr.requester_id = u.id
+            WHERE cr.post_id = ? AND cr.status = 'accepted'
+        ");
+        $stmt2->execute([$postId]);
+        $requesters = $stmt2->fetchAll();
+
+        $participants = [];
+        if ($owner) {
+            $participants[] = $owner;
+        }
+        foreach ($requesters as $req) {
+            $participants[] = $req;
+        }
+        return $participants;
+    }
+
+    // Retrieves a user's gender
+    public function getUserGender($userId) {
+        $stmt = $this->db->prepare("SELECT gender FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch();
+        return $row ? $row['gender'] : null;
+    }
+
+    // Gets count of accepted join requests for a post
+    public function getAcceptedCountForPost($postId) {
+        $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM companion_requests WHERE post_id = ? AND status = 'accepted'");
+        $stmt->execute([$postId]);
+        $row = $stmt->fetch();
+        return $row ? intval($row['count']) : 0;
     }
 }

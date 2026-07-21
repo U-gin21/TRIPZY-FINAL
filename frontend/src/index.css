@@ -703,6 +703,50 @@ body {
   min-height: 100vh;
 }
 
+.mobile-header-dashboard {
+  display: none;
+}
+
+@media (max-width: 992px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+  .sidebar {
+    left: -280px;
+    transition: left 0.3s ease-in-out;
+    z-index: 1050;
+  }
+  .sidebar.show {
+    left: 0;
+  }
+  .dashboard-content {
+    margin-left: 0 !important;
+    padding: 20px !important;
+  }
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    z-index: 1040;
+  }
+  .mobile-header-dashboard {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--grad-dark);
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+}
+
+
 /* Navigation */
 .navbar-custom {
   background: var(--navbar-bg);

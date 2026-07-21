@@ -27,6 +27,80 @@ class AuthController {
         return ["success" => true, "message" => "Registration successful!", "user_id" => $userId];
     }
 
+    // Endpoint generates a registration OTP and stores pending data in session
+    public function send_register_otp($input, $args) {
+        // Run validations first
+        UserValidator::validateRegister($input);
+
+        // Check if email already registered
+        if ($this->authService->existsEmail($input['email'])) {
+            throw new ValidationException("The email address is already registered.");
+        }
+
+        // Handle Profile Photo Upload if present (do it now so path is in session)
+        $photo = 'default_profile.jpg';
+        if (isset($_FILES['profile_photo'])) {
+            $targetDir = dirname(__DIR__) . '/uploads/profiles/';
+            $uploaded = UploadHelper::uploadImageFile('profile_photo', $targetDir);
+            if ($uploaded) {
+                $photo = 'profiles/' . $uploaded;
+            }
+        }
+        $input['profile_photo'] = $photo;
+
+        // Generate OTP
+        $token = rand(100000, 999999);
+        
+        // Save register data and token to session
+        $_SESSION['pending_register_data'] = $input;
+        $_SESSION['pending_register_otp'] = $token;
+        $_SESSION['pending_register_expires'] = time() + 900; // 15 minutes validity
+        
+        // Send OTP email
+        $subject = "Tripzy Email Verification OTP";
+        $body = "<h2>Tripzy Registration Verification</h2>";
+        $body .= "<p>Hello " . htmlspecialchars($input['full_name']) . ",</p>";
+        $body .= "<p>Thank you for initiating registration on Tripzy.</p>";
+        $body .= "<p>Use the following 6-digit verification code to confirm that this is your real email address:</p>";
+        $body .= "<h3 style='letter-spacing: 0.15em;'>$token</h3>";
+        $body .= "<p>Enter this code in the registration verification screen to complete your registration.</p>";
+        $body .= "<p>Warm regards,<br>Tripzy Sri Lanka Team</p>";
+        
+        require_once __DIR__ . '/../helper/Mailer.php';
+        if (!Mailer::send($input['email'], $subject, $body)) {
+            throw new Exception("Failed to send verification email. Please try again later.");
+        }
+        
+        return ["success" => true, "message" => "Verification OTP sent to your email."];
+    }
+
+    // Endpoint verifies registration OTP and inserts user data into the database
+    public function verify_register_otp($input, $args) {
+        if (empty($input['token'])) {
+            throw new ValidationException("Verification token is required.");
+        }
+        if (!isset($_SESSION['pending_register_otp']) || !isset($_SESSION['pending_register_data']) || !isset($_SESSION['pending_register_expires'])) {
+            throw new ValidationException("No active registration session found. Please register again.");
+        }
+        if (time() > $_SESSION['pending_register_expires']) {
+            unset($_SESSION['pending_register_otp'], $_SESSION['pending_register_data'], $_SESSION['pending_register_expires']);
+            throw new ValidationException("The verification code has expired. Please restart the registration process.");
+        }
+        if ($_SESSION['pending_register_otp'] != $input['token']) {
+            throw new ValidationException("Invalid verification code.");
+        }
+
+        $data = $_SESSION['pending_register_data'];
+        
+        // Register the user using standard AuthService
+        $userId = $this->authService->register($data);
+        
+        // Clear session register data
+        unset($_SESSION['pending_register_otp'], $_SESSION['pending_register_data'], $_SESSION['pending_register_expires']);
+        
+        return ["success" => true, "message" => "Registration successful! You can now log in."];
+    }
+
     // Endpoint handles user authentication credentials and establishes session data
     public function login($input, $args) {
         if (empty($input['email']) || empty($input['password'])) {
@@ -67,9 +141,8 @@ class AuthController {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         
         $isHTTPS = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
-        $isLocalhost = isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
-        $cookieSameSite = ($isHTTPS || $isLocalhost) ? 'None' : 'Lax';
-        $cookieSecure = $isHTTPS || $isLocalhost;
+        $cookieSecure = $isHTTPS;
+        $cookieSameSite = $cookieSecure ? 'None' : 'Lax';
         
         setcookie('XSRF-TOKEN', $_SESSION['csrf_token'], [
             'expires' => 0,
@@ -179,6 +252,16 @@ class AuthController {
         if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
             throw new ValidationException("Invalid email address format.");
         }
+
+        // Save to database
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("INSERT INTO contact_inquiries (name, email, subject, message) VALUES (:name, :email, :subject, :message)");
+        $stmt->execute([
+            ':name' => $input['name'],
+            ':email' => $input['email'],
+            ':subject' => $input['subject'],
+            ':message' => $input['message']
+        ]);
 
         $admin_email = 'dteugene2003@gmail.com';
         $subject = "Tripzy Contact Inquiry: " . $input['subject'];

@@ -23,6 +23,7 @@ export default function ProviderDashboard({
   const [bookings, setBookings] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Selected Booking Customer Details Modal
   const [selectedCust, setSelectedCust] = useState(null);
@@ -72,6 +73,20 @@ export default function ProviderDashboard({
 
   return (
     <div className="dashboard-container">
+      {/* Mobile Top Header */}
+      <div className="mobile-header-dashboard d-flex align-items-center justify-content-between p-3 d-lg-none text-white w-100">
+        <button className="btn btn-outline-light border-0 p-0" onClick={() => setIsSidebarOpen(true)}>
+          <i className="bi bi-list fs-2"></i>
+        </button>
+        <span className="fw-bold fs-5"><i className="bi bi-building-fill text-success me-2"></i>Provider Panel</span>
+        <div style={{ width: '28px' }}></div>
+      </div>
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div className="sidebar-overlay d-lg-none" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
       {/* SIDEBAR */}
       <Sidebar 
         currentUser={currentUser} 
@@ -80,6 +95,8 @@ export default function ProviderDashboard({
         onLogout={onLogout} 
         unreadNotificationsCount={notifications.filter(n => !n.is_read || n.is_read == '0').length}
         pendingBookingsCount={bookings.filter(b => b.status === 'pending').length}
+        isSidebarOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* CONTENT REGION */}

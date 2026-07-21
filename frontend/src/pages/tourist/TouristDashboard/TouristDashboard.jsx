@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { getUploadUrl, getProfilePhoto } from '../../../api';
 import { touristApi } from './touristApi';
+import { companionService } from '../../../services/companionService';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -33,6 +35,14 @@ export default function TouristDashboard({
   const [myRequests, setMyRequests] = useState([]);
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Rating states
+  const [ratingPostId, setRatingPostId] = useState(null);
+  const [rateableParticipants, setRateableParticipants] = useState([]);
+  const [loadingRateable, setLoadingRateable] = useState(false);
+  const [rateError, setRateError] = useState('');
+  const [tempRatings, setTempRatings] = useState({});
   
   // Booking Form State
   const [selectedService, setSelectedService] = useState(null);
@@ -502,8 +512,57 @@ export default function TouristDashboard({
     );
   };
 
+  const handleOpenRateModal = async (postId) => {
+    setRatingPostId(postId);
+    setRateableParticipants([]);
+    setRateError('');
+    setLoadingRateable(true);
+    setTempRatings({});
+    try {
+      const participants = await companionService.getRateableParticipants(postId);
+      setRateableParticipants(participants);
+      const initialRatings = {};
+      participants.forEach(p => {
+        if (!p.has_rated) {
+          initialRatings[p.user_id] = 10;
+        }
+      });
+      setTempRatings(initialRatings);
+    } catch (err) {
+      setRateError(err.message || 'Failed to load companions for rating.');
+    } finally {
+      setLoadingRateable(false);
+    }
+  };
+
+  const handleSubmitCompanionRating = async (rateeId) => {
+    const ratingValue = tempRatings[rateeId] || 10;
+    try {
+      await companionService.submitRating(ratingPostId, rateeId, ratingValue);
+      alert('Companion rated successfully!');
+      handleOpenRateModal(ratingPostId);
+      fetchCompanionDetails();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div className="dashboard-container">
+      {/* Mobile Top Header */}
+      <div className="mobile-header-dashboard d-flex align-items-center justify-content-between p-3 d-lg-none text-white w-100">
+        <button className="btn btn-outline-light border-0 p-0" onClick={() => setIsSidebarOpen(true)}>
+          <i className="bi bi-list fs-2"></i>
+        </button>
+        <span className="fw-bold fs-5"><i className="bi bi-person-circle text-primary me-2"></i>Tourist Panel</span>
+        <div style={{ width: '28px' }}></div>
+      </div>
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div className="sidebar-overlay d-lg-none" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
       {/* SIDEBAR */}
       <Sidebar 
         currentUser={currentUser} 
@@ -512,6 +571,8 @@ export default function TouristDashboard({
         onLogout={onLogout} 
         unreadNotificationsCount={notifications.filter(n => !n.is_read || n.is_read == '0').length}
         pendingCompanionsCount={incomingRequests.filter(r => r.status === 'pending').length}
+        isSidebarOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* DASHBOARD CONTENT */}
@@ -547,6 +608,7 @@ export default function TouristDashboard({
             handleCancelRequest={handleCancelRequest} 
             setRequestPost={setRequestPost} 
             setRequestMsg={setRequestMsg} 
+            handleOpenRateModal={handleOpenRateModal}
           />
         )}
 
@@ -618,8 +680,94 @@ export default function TouristDashboard({
         setRequestMsg={setRequestMsg} 
         requestSubmitting={requestSubmitting} 
         handleSendCompanionRequest={handleSendCompanionRequest} 
-        
       />
+
+      <div className="modal fade" id="dashboardRateCompanionsModal" tabIndex="-1" aria-hidden="true" style={{ zIndex: 1060 }}>
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content rounded-4 border-0 shadow-lg">
+            <div className="modal-header border-0 pb-0">
+              <h4 className="modal-title fw-bold text-gradient text-emerald">Rate Travel Companions</h4>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body p-4 text-dark text-start">
+              {loadingRateable ? (
+                <div className="text-center py-4">
+                  <div className="spinner-border text-emerald" role="status"></div>
+                  <p className="small text-muted mt-2">Loading companions...</p>
+                </div>
+              ) : rateError ? (
+                <div className="alert alert-danger text-center small mb-0" role="alert">
+                  <i className="bi bi-exclamation-triangle-fill me-2"></i> {rateError}
+                </div>
+              ) : rateableParticipants.length > 0 ? (
+                <div>
+                  <p className="small text-muted mb-3">Rate your travel buddies on a scale of 1 to 10 based on your trip experience:</p>
+                  <div className="d-flex flex-column gap-3">
+                    {rateableParticipants.map((p) => {
+                      const avatarUrl = getProfilePhoto(p.profile_photo);
+                      return (
+                        <div key={p.user_id} className="d-flex align-items-center justify-content-between p-3 border rounded-3 bg-light">
+                          <div className="d-flex align-items-center gap-3">
+                            <img 
+                              src={avatarUrl} 
+                              alt={p.full_name} 
+                              className="rounded-circle border border-emerald" 
+                              style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                            />
+                            <div>
+                              <h6 className="fw-bold mb-0 text-dark small">{p.full_name}</h6>
+                              <span className="badge bg-secondary rounded-pill small" style={{ fontSize: '10px' }}>
+                                {p.role === 'host' ? 'Trip Host' : 'Participant'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            {p.has_rated ? (
+                              <span className="badge bg-success rounded-pill px-3 py-2 small">
+                                <i className="bi bi-check-circle-fill me-1"></i> Rated
+                              </span>
+                            ) : (
+                              <div className="d-flex gap-2 align-items-center">
+                                <select 
+                                  className="form-select form-select-sm rounded-3" 
+                                  value={tempRatings[p.user_id] || 10}
+                                  onChange={(e) => setTempRatings({
+                                    ...tempRatings,
+                                    [p.user_id]: parseInt(e.target.value)
+                                  })}
+                                  style={{ width: '70px' }}
+                                >
+                                  {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(v => (
+                                    <option key={v} value={v}>{v}</option>
+                                  ))}
+                                </select>
+                                <button 
+                                  className="btn btn-sm btn-gradient rounded-pill px-3"
+                                  onClick={() => handleSubmitCompanionRating(p.user_id)}
+                                >
+                                  Submit
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4 text-muted">
+                  No rateable companions found.
+                </div>
+              )}
+            </div>
+            <div className="modal-footer border-0 pt-0">
+              <button type="button" className="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

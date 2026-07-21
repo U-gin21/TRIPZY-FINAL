@@ -9,6 +9,14 @@ export const authService = {
     return await apiRequest('auth', 'register', 'POST', formData);
   },
 
+  sendRegisterOtp: async (formData) => {
+    return await apiRequest('auth', 'send_register_otp', 'POST', formData);
+  },
+
+  verifyRegisterOtp: async (token) => {
+    return await apiRequest('auth', 'verify_register_otp', 'POST', { token });
+  },
+
   forgotPassword: async (email) => {
     return await apiRequest('auth', 'forgot_password', 'POST', { email });
   },

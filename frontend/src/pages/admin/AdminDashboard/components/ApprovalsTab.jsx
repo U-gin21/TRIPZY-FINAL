@@ -5,7 +5,7 @@ export default function ApprovalsTab({ pendingAdmins, pendingProviders, handleAp
   return (
     <div>
       <h2 className="fw-bold text-gradient mb-4">Pending Requests Approval Panel</h2>
-      
+
       <div className="row g-4">
         {/* Admin Registrations approvals */}
         <div className="col-md-6">
@@ -27,8 +27,8 @@ export default function ApprovalsTab({ pendingAdmins, pendingProviders, handleAp
                       </div>
                     </div>
                     <div className="d-flex gap-2">
-                      <button 
-                        className="btn btn-success btn-sm rounded-pill px-3 d-flex align-items-center gap-1" 
+                      <button
+                        className="btn btn-success btn-sm rounded-pill px-3 d-flex align-items-center gap-1"
                         onClick={() => handleApproveUser(adm.id, 'active', 'admin')}
                         disabled={!!(approvingUsers && approvingUsers[adm.id])}
                       >
@@ -39,8 +39,8 @@ export default function ApprovalsTab({ pendingAdmins, pendingProviders, handleAp
                           </>
                         ) : 'Approve'}
                       </button>
-                      <button 
-                        className="btn btn-outline-danger btn-sm rounded-pill px-3" 
+                      <button
+                        className="btn btn-outline-danger btn-sm rounded-pill px-3"
                         onClick={() => handleApproveUser(adm.id, 'rejected', 'admin')}
                         disabled={!!(approvingUsers && approvingUsers[adm.id])}
                       >
@@ -76,8 +76,8 @@ export default function ApprovalsTab({ pendingAdmins, pendingProviders, handleAp
                       </div>
                     </div>
                     <div className="d-flex gap-2">
-                      <button 
-                        className="btn btn-success btn-sm rounded-pill px-3 d-flex align-items-center gap-1" 
+                      <button
+                        className="btn btn-success btn-sm rounded-pill px-3 d-flex align-items-center gap-1"
                         onClick={() => handleApproveUser(prov.id, 'active', 'provider')}
                         disabled={!!(approvingUsers && approvingUsers[prov.id])}
                       >
@@ -88,8 +88,8 @@ export default function ApprovalsTab({ pendingAdmins, pendingProviders, handleAp
                           </>
                         ) : 'Approve'}
                       </button>
-                      <button 
-                        className="btn btn-outline-danger btn-sm rounded-pill px-3" 
+                      <button
+                        className="btn btn-outline-danger btn-sm rounded-pill px-3"
                         onClick={() => handleApproveUser(prov.id, 'rejected', 'provider')}
                         disabled={!!(approvingUsers && approvingUsers[prov.id])}
                       >

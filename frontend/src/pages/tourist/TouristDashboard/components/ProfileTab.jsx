@@ -112,13 +112,16 @@ export default function ProfileTab({ currentUser, onProfileUpdate, bookings, myP
               onChange={(e) => setProfilePhoto(e.target.files[0] || null)}
             />
             <h4 className="fw-bold mb-1 text-gradient">{currentUser.full_name}</h4>
-            <div className="mb-2">
+            <div className="mb-2 d-flex justify-content-center gap-2 flex-wrap">
               <span className="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-10 px-3 py-1">Tourist Account</span>
+              <span className="badge rounded-pill bg-warning bg-opacity-10 text-dark px-3 py-1">
+                ★ {currentUser.rating > 0 ? `${currentUser.rating} (${currentUser.review_count} rates)` : 'No ratings yet'}
+              </span>
             </div>
             <div className="profile-verified-badge mb-4">
               <i className="bi bi-shield-fill-check"></i> {currentUser.email} (Verified)
             </div>
-            
+
             <div className="px-3">
               <h6 className="fw-bold text-start text-uppercase text-secondary small mb-3 border-bottom pb-2">Platform Activity</h6>
               <div className="row g-3 text-start">
@@ -177,7 +180,7 @@ export default function ProfileTab({ currentUser, onProfileUpdate, bookings, myP
                   </div>
                   <div className="form-text small">Leave empty to keep your current name.</div>
                 </div>
-                
+
                 <div className="col-md-6">
                   <label className="form-label small fw-bold">Name with Initials</label>
                   <div className="input-group">
@@ -211,7 +214,7 @@ export default function ProfileTab({ currentUser, onProfileUpdate, bookings, myP
                 <div className="col-md-12 mt-4 pt-3 border-top">
                   <h6 className="fw-bold text-uppercase text-secondary small mb-3">Verified Personal Registry (Read-only)</h6>
                 </div>
-                
+
                 <div className="col-md-6">
                   <label className="form-label small fw-bold text-muted">Email Address</label>
                   <div className="input-group">
@@ -263,7 +266,7 @@ export default function ProfileTab({ currentUser, onProfileUpdate, bookings, myP
                     />
                   </div>
                 </div>
-                
+
                 <div className="col-12 mt-4 pt-3 border-top">
                   <button type="submit" className="btn btn-gradient w-100 py-3 rounded-pill shadow-sm fw-bold d-flex align-items-center justify-content-center gap-2 animate-float-hover" disabled={profileLoading}>
                     {profileLoading ? (

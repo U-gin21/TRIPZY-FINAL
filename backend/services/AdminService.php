@@ -99,4 +99,52 @@ class AdminService {
     public function getAllUsers() {
         return $this->userRepo->getAllUsers();
     }
+
+    // Retrieves all contact inquiries sorted by date descending
+    public function getAllInquiries() {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->query("SELECT * FROM contact_inquiries ORDER BY created_at DESC");
+        return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    }
+
+    // Retrieves all companion finder posts for administrative overview
+    public function getAllCompanionPosts() {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->query("
+            SELECT cp.*, u.full_name as owner_name, u.email as owner_email,
+                   ROUND(IFNULL((SELECT AVG(rating) FROM companion_ratings WHERE post_id = cp.id), 0), 1) as trip_rating,
+                   IFNULL((SELECT COUNT(*) FROM companion_ratings WHERE post_id = cp.id), 0) as trip_rating_count,
+                   IFNULL((SELECT COUNT(*) FROM companion_requests WHERE post_id = cp.id AND status = 'accepted'), 0) as accepted_count
+            FROM companion_posts cp
+            JOIN users u ON cp.owner_id = u.id
+            ORDER BY cp.created_at DESC
+        ");
+        return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    }
+
+    // Deletes a companion post by administrator intervention
+    public function deleteCompanionPost($postId) {
+        $db = Database::getInstance()->getConnection();
+        $db->beginTransaction();
+        try {
+            // Delete ratings, requests, interests, and post
+            $stmt = $db->prepare("DELETE FROM companion_ratings WHERE post_id = ?");
+            $stmt->execute([$postId]);
+            
+            $stmt = $db->prepare("DELETE FROM companion_requests WHERE post_id = ?");
+            $stmt->execute([$postId]);
+
+            $stmt = $db->prepare("DELETE FROM companion_post_interests WHERE post_id = ?");
+            $stmt->execute([$postId]);
+
+            $stmt = $db->prepare("DELETE FROM companion_posts WHERE id = ?");
+            $stmt->execute([$postId]);
+
+            $db->commit();
+            return true;
+        } catch (Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
 }

@@ -134,4 +134,33 @@ class CompanionsController {
         $this->compService->cancelRequest($requestId, $_SESSION['user_id']);
         return ["success" => true, "message" => "Join request cancelled."];
     }
+
+    // Endpoint retrieves all other participants that can be rated by the tourist
+    public function get_rateable_participants($input, $args) {
+        AuthMiddleware::requireTourist();
+        $postId = $args['post_id'] ?? 0;
+        if (!is_numeric($postId) || intval($postId) <= 0) {
+            throw new ValidationException("Invalid post ID.");
+        }
+        $participants = $this->compService->getRateableParticipants($postId, $_SESSION['user_id']);
+        return ["success" => true, "participants" => $participants];
+    }
+
+    // Endpoint submits a star rating for a travel companion
+    public function submit_rating($input, $args) {
+        AuthMiddleware::requireTourist();
+        $postId = $input['post_id'] ?? 0;
+        $rateeId = $input['ratee_id'] ?? 0;
+        $rating = $input['rating'] ?? 0;
+
+        if (!is_numeric($postId) || intval($postId) <= 0) {
+            throw new ValidationException("Invalid post ID.");
+        }
+        if (!is_numeric($rateeId) || intval($rateeId) <= 0) {
+            throw new ValidationException("Invalid companion ratee ID.");
+        }
+        
+        $this->compService->submitRating($postId, $_SESSION['user_id'], $rateeId, $rating);
+        return ["success" => true, "message" => "Companion rated successfully!"];
+    }
 }

@@ -38,6 +38,7 @@ export default function Auth({ onLoginSuccess, initialMode = 'login' }) {
   const [newPassword, setNewPassword] = useState('');
   const [verifyMode, setVerifyMode] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
+  const [registerVerifyMode, setRegisterVerifyMode] = useState(false);
 
   // UI States
   const [loading, setLoading] = useState(false);
@@ -48,6 +49,7 @@ export default function Auth({ onLoginSuccess, initialMode = 'login' }) {
       setForgotMode(false);
       setResetMode(false);
       setVerifyMode(false);
+      setRegisterVerifyMode(false);
     }, 0);
     return () => clearTimeout(timer);
   }, [initialMode]);
@@ -151,11 +153,10 @@ export default function Auth({ onLoginSuccess, initialMode = 'login' }) {
         formData.append('profile_photo', profilePhoto);
       }
 
-      const res = await authService.register(formData);
-      alert(res.message + ' Please log in now.');
-      setTimeout(() => {
-        setIsLogin(true);
-      }, 3000);
+      const res = await authService.sendRegisterOtp(formData);
+      alert(res.message);
+      setRegisterVerifyMode(true);
+      setResetToken('');
     } catch (err) {
       alert(err.message);
     } finally {
@@ -198,6 +199,22 @@ export default function Auth({ onLoginSuccess, initialMode = 'login' }) {
     }
   };
 
+  const handleVerifyRegisterToken = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await authService.verifyRegisterOtp(resetToken);
+      alert(res.message);
+      setRegisterVerifyMode(false);
+      setResetToken('');
+      setIsLogin(true);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -226,7 +243,7 @@ export default function Auth({ onLoginSuccess, initialMode = 'login' }) {
 
       <div className="container my-auto">
         <div className="row justify-content-center">
-          <div className={isLogin || forgotMode || resetMode || verifyMode ? "col-12 col-md-6 col-lg-5" : "col-12 col-lg-9 col-xl-8"}>
+          <div className={isLogin || forgotMode || resetMode || verifyMode || registerVerifyMode ? "col-12 col-md-6 col-lg-5" : "col-12 col-lg-9 col-xl-8"}>
             <div className="card auth-form-card p-4 p-md-5 border-0 animate-fade-in">
               
               {/* FORGOT PASSWORD SECTION */}
@@ -253,6 +270,23 @@ export default function Auth({ onLoginSuccess, initialMode = 'login' }) {
                 />
               )}
 
+              {/* REGISTER VERIFY OTP SECTION */}
+              {registerVerifyMode && (
+                <VerifyOtpForm
+                  resetToken={resetToken}
+                  setResetToken={setResetToken}
+                  handleVerifyToken={handleVerifyRegisterToken}
+                  loading={loading}
+                  setVerifyMode={setRegisterVerifyMode}
+                  setForgotMode={() => {}}
+                  isRegister={true}
+                  onBackToRegister={() => {
+                    setRegisterVerifyMode(false);
+                    setIsLogin(false);
+                  }}
+                />
+              )}
+
               {/* RESET PASSWORD SECTION */}
               {resetMode && (
                 <ResetPasswordForm
@@ -264,7 +298,7 @@ export default function Auth({ onLoginSuccess, initialMode = 'login' }) {
               )}
 
               {/* LOGIN FORM SECTION */}
-              {isLogin && !forgotMode && !resetMode && !verifyMode && (
+              {isLogin && !forgotMode && !resetMode && !verifyMode && !registerVerifyMode && (
                 <LoginForm
                   loginEmail={loginEmail}
                   setLoginEmail={setLoginEmail}
@@ -279,7 +313,7 @@ export default function Auth({ onLoginSuccess, initialMode = 'login' }) {
               )}
 
               {/* REGISTER FORM SECTION */}
-              {!isLogin && !forgotMode && !resetMode && !verifyMode && (
+              {!isLogin && !forgotMode && !resetMode && !verifyMode && !registerVerifyMode && (
                 <RegisterForm
                   userType={userType}
                   setUserType={setUserType}
